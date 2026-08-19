@@ -30,6 +30,55 @@ maintained properly with every release.
 
 ---
 
+## [1.5.8] — 2026-08-19
+
+### Added
+- **Timer Waveform Designer** — a graphical, time-based view inside every enabled
+  timer card:
+  - **Signal preview:** shows the actual output waveform of every assigned channel
+    pin (CHx) and, for advanced timers, the complementary output (CHxN) — the X
+    axis is real time (µs/ms) and several PWM periods are drawn so the signal
+    shape is clear.
+  - **Mode-aware diagrams:** PWM Generation (multi-cycle square waves with pulse
+    markers), Output Compare (toggle at match), Input Capture (input + capture
+    markers), and Encoder (quadrature, 90° phase).
+  - **Graphic numeric control:** PSC and ARR sliders + editable boxes, and a
+    **per-channel Pulse** slider + number + High/Low polarity button. The existing
+    numeric fields in the card stay fully in sync (two-way).
+  - **Target frequency / period:** the frequency and period boxes in the card are
+    both display and input — type `1kHz`, `20k`, `0.5M`, `100Hz`, or `1ms`,
+    `100us`, `20ns` and press Enter; PSC/ARR are computed automatically for the
+    closest achievable signal.
+  - **Dead-time & complementary outputs (advanced timers only):** enable CHxN,
+    set dead-time with one slider synced to two editable boxes (time in ns ⇄ DTG
+    register 0–255), a live zoomed edge view shows the both-low dead-time gap, and
+    the DTG max range scales with the timer clock (tDTS).
+  - **Capability-aware:** only channels with an assigned pin are shown; advanced
+    features appear only for timers that actually have complementary channels
+    (e.g. TIM1, TIM16, TIM17).
+  - **Always visible once a timer is enabled:** the waveform section (with PSC/ARR
+    sliders, frequency/period boxes and, for advanced timers, dead-time) appears as
+    soon as a timer is enabled — even before pins are assigned, a guided placeholder
+    explains how to assign channel pins to see the live signal preview.
+  - **Help buttons (`?`)** on the waveform section and on the Complementary &
+    Dead-time section, with English tooltips explaining what each control does.
+- **Code generation:** per-channel Pulse values are written individually
+  (`Pulse = <pulseN>` per channel), channel + complementary output are merged into
+  a single `TIM_OCxInit`/`HAL_TIM_PWM_ConfigChannel` call (no more last-call-wins
+  overwrites), and dead-time is emitted for advanced timers:
+  - PY32 HAL: `TIM_BreakDeadTimeConfigTypeDef` + `HAL_TIMEx_ConfigBreakDeadTime` +
+    `HAL_TIMEx_PWMN_Start`.
+  - HK StdPeriph: `TIM_BDTRInitTypeDef` + `TIM_BDTRConfig` + `TIM_OutputNState`
+    + `TIM_CtrlPWMOutputs`.
+- **Theme-consistent numeric inputs:** all waveform number boxes use the app's
+  theme variables (dark/light).
+
+### Fixed
+- The generated timer code no longer emits two conflicting `TIM_OCxInit` calls
+  when both CHx and CHxN are assigned.
+
+---
+
 ## [1.5.7] — 2026-08-19 — first public release
 
 ### Fixed
