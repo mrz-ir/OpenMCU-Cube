@@ -3,6 +3,11 @@
 # 🧊 OpenMCU Cube
 
 ### An STM32CubeMX-style configurator for **HK32** & **PY32** microcontrollers
+<p align="center">
+  <a href="https://mrz-ir.github.io/OpenMCU-Cube/OpenMCU_Cube1_5_7.html" target="_blank">
+    <img src="https://img.shields.io/badge/⚡_Try_Now-OpenMCU_Cube_v1.5.7-4F46E5?style=for-the-badge" alt="Try Now">
+  </a>
+</p>
 
 **Pinout · Clock tree · Code generation — in a single offline HTML file.**
 
