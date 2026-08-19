@@ -594,7 +594,7 @@ footer a{color:var(--text-dim);text-decoration:underline;}
 
 <!-- Embedded SDK headers (gzip+base64) — these are packed into the generated ZIP -->
 <script>
-const EMBEDDED_HEADERS = {}; /* superseded in v1.5.7 by the full SDK payload (sources+headers+startup) appended at the end of this file */
+const EMBEDDED_HEADERS = {}; /* superseded in v1.5.6 by the full SDK payload (sources+headers+startup) appended at the end of this file */
 </script>
 
 <script>
@@ -2788,7 +2788,13 @@ function genStdGpioInit(L, ports){
         if(f1) L.push('  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_' + (st.pull==='UP'?'IPU':st.pull==='DOWN'?'IPD':'IN_FLOATING') + ';');
         else { L.push('  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;'); L.push('  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_' + (st.pull==='UP'?'UP':st.pull==='DOWN'?'DOWN':'NOPULL') + ';'); }
       } else if(st.mode==='OUTPUT'){
-        L.push('  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_' + (st.otype==='PP'?'Out_PP':'Out_OD') + ';');
+        if(f1){
+          L.push('  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_' + (st.otype==='PP'?'Out_PP':'Out_OD') + ';');
+        } else {
+          /* HK32F030M / HK32C030 StdPeriph: mode is GPIO_Mode_OUT + separate OType field */
+          L.push('  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;');
+          L.push('  GPIO_InitStructure.GPIO_OType = GPIO_OType_' + (st.otype==='PP'?'PP':'OD') + ';');
+        }
       } else if(st.mode==='ANALOG'){
         L.push('  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_' + (f1?'AIN':'AN') + ';');
       } else if(st.mode==='AF'){
@@ -3758,7 +3764,7 @@ function toast(msg,type){
     Object.entries(ports).forEach(([port,pins])=>pins.forEach(({name,pinNum,st})=>{
       L.push('  /* ---- '+name+(st.af?' -> '+st.af:'')+' ---- */');L.push('  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_'+pinNum+';');L.push('  GPIO_InitStructure.GPIO_Speed = '+(f1?'GPIO_Speed_50MHz':'GPIO_Speed_10MHz')+';');
       if(st.mode==='INPUT'){if(f1)L.push('  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_'+(st.pull==='UP'?'IPU':st.pull==='DOWN'?'IPD':'IN_FLOATING')+';');else{L.push('  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;');L.push('  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_'+(st.pull==='UP'?'UP':st.pull==='DOWN'?'DOWN':'NOPULL')+';');}}
-      else if(st.mode==='OUTPUT')L.push('  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_'+(st.otype==='PP'?'Out_PP':'Out_OD')+';');
+      else if(st.mode==='OUTPUT'){ if(f1){L.push('  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_'+(st.otype==='PP'?'Out_PP':'Out_OD')+';');} else {L.push('  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;');L.push('  GPIO_InitStructure.GPIO_OType = GPIO_OType_'+(st.otype==='PP'?'PP':'OD')+';');} }
       else if(st.mode==='ANALOG')L.push('  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_'+(f1?'AIN':'AN')+';');
       else if(st.mode==='AF'){L.push('  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_'+(f1?(st.otype==='OD'?'AF_OD':'AF_PP'):'AF')+';');if(!f1)L.push('  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;');}
       if(st.mode==='AF'&&!f1){L.push('  GPIO_PinAFConfig(GPIO'+port+', GPIO_PinSource'+pinNum+', GPIO_AF_'+py32AfNum(name,st.af)+');');v14IomuxLines(name,st.af).forEach(x=>L.push(x));}
@@ -3848,7 +3854,7 @@ function toast(msg,type){
 
 
 /* ============================================================
-   OpenMCU Cube v1.5.7 — verified HK32 Keil DFP backend
+   OpenMCU Cube v1.5.6 — verified HK32 Keil DFP backend
    Source of truth: the actual HKMicroChip .PACK files supplied
    with this project.  The generator uses exact Device/IROM/IRAM,
    SVD, startup and default Flash Algorithm data from those packs.
@@ -4033,7 +4039,7 @@ catch(err){
 
 <script>
 /* ============================================================================
-   OpenMCU Cube v1.5.7 — Keil (.uvprojx) build fix
+   OpenMCU Cube v1.5.6 — Keil (.uvprojx) build fix
    ----------------------------------------------------------------------------
    This module is appended AFTER all v1.5.4 code and overrides the broken
    pieces. Everything it changes was reproduced and then verified by actually
@@ -5066,7 +5072,7 @@ setTimeout(()=>{
 })();
 
 /* ============================================================================
-   v1.5.7 — pin marking for SYSTEM peripherals
+   v1.5.6 — pin marking for SYSTEM peripherals
    ----------------------------------------------------------------------------
    In 1.5.5 the peripheral card only rendered buttons when `!auto`, so the
    "Mark Pins" (mark pins) action was unavailable for the whole
@@ -5152,5 +5158,5 @@ setTimeout(()=>{
 })();
 
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2d4db8d7c83d8e7',t:'MTc4NzA5NzQxMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
