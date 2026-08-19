@@ -53,7 +53,7 @@ use case helps a lot — e.g. "support the PY32F002B SOP14 package" is clearer w
 ## Submitting changes (pull requests)
 
 1. **Fork** the repository and create a branch: `git checkout -b fix/clock-labels`.
-2. Make your change **directly in `OpenMCU_Cube1_5_7.html`** (there is no build step).
+2. Make your change **directly in `OpenMCU_Cube.html`** (there is no build step).
 3. **Update the version number** in the file if the change is user-visible:
    - the `v1.x.y` badge in the top bar (both static HTML and the JS `setTimeout`
      badge updates),
