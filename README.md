@@ -12,7 +12,7 @@
 
 **Pinout · Clock tree · Code generation — in a single offline HTML file.**
 
-[![Version](https://img.shields.io/badge/version-1.5.7-33d6c0?style=flat-square)](OpenMCU_Cube1_5_7.html)
+[![Version](https://img.shields.io/badge/version-1.5.8-33d6c0?style=flat-square)](OpenMCU_Cube1_5_8.html)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 [![No dependencies](https://img.shields.io/badge/dependencies-none-5b8def?style=flat-square)](#-getting-started)
 [![Works offline](https://img.shields.io/badge/works-offline-5fc98d?style=flat-square)](#-getting-started)
@@ -45,6 +45,7 @@
 |---|---|
 | 🧩 **Pinout & Configuration** | Interactive package view with click-to-configure pins: GPIO input/output, alternate functions, analog roles, conflict detection and suggested-pin highlighting. |
 | ⏱ **Clock Configuration** | Enable HSI / HSE / LSI / LSE / PLL, choose the SYSCLK source and AHB/APB prescalers, with a **live block diagram** that highlights the active path and warns when a limit is exceeded. |
+| 🕐 **Timer Waveform Designer** | Time-based signal preview of every assigned channel (incl. complementary outputs), graphic PSC/ARR/per-channel-Pulse editing, **target frequency/period auto-compute**, and **dead-time (ns ⇄ DTG)** for advanced timers. |
 | 📟 **Code Generation** | HAL-style code for PY32 devices, StdPeriph-style code for HK devices. Download `main.c` or a full ZIP (drivers + startup + **ready-to-open Keil uVision project**). |
 | 🔄 **Project restore** | Upload a previous `main.c` to keep your `USER CODE` blocks, or add `project_settings.json` to restore pins, peripherals, clock settings and the project name. |
 | 🌗 **Light / Dark theme** | One-click theme toggle, remembered between sessions. |
@@ -53,6 +54,8 @@
 | 🔌 **Zero dependencies** | A single `.html` file that runs fully offline in any modern browser. |
 
 ![Clock configuration — dark theme](docs/screenshot-clock-dark.png)
+
+![Timer Waveform Designer](docs/screenshot-timer-waveform.png)
 
 ![Inline help tooltip — dark theme](docs/screenshot-tooltip.png)
 
@@ -80,12 +83,12 @@ Generated code targets the matching vendor SDK for each family:
 
 ## 🚀 Getting started
 
-1. **Download** [`OpenMCU_Cube1_5_7.html`](OpenMCU_Cube1_5_7.html) (or the latest release from the [Releases](https://github.com/mrz-ir/OpenMCU-Cube/releases) page).
+1. **Download** [`OpenMCU_Cube1_5_8.html`](OpenMCU_Cube1_5_8.html) (or the latest release from the [Releases](https://github.com/mrz-ir/OpenMCU-Cube/releases) page).
 2. **Double-click it** — it opens in your browser. No installation, no internet connection needed.
 3. Pick your **Device** in the top bar, configure **pins → clocks**, then generate **code**.
 
 > 💡 **Tip:** enable **GitHub Pages** on the repository (Settings → Pages → branch `main`) and the app is also usable online at
-> `https://mrz-ir.github.io/OpenMCU-Cube/OpenMCU_Cube.html`.
+> `https://mrz-ir.github.io/OpenMCU-Cube/OpenMCU_Cube1_5_8.html`.
 
 ![Mobile layout](docs/screenshot-mobile.png)
 
@@ -104,6 +107,12 @@ Generated code targets the matching vendor SDK for each family:
 - Choose the **SYSCLK source** and the **AHB / APB prescalers**.
 - The computed clock list and the block diagram update live — a block turns **red** when a value exceeds the series limit.
 
+### Timer Waveform Designer (in the Pinout & Configuration tab)
+- Enable a timer (e.g. TIM1, TIM3) and assign its channel pins — a **waveform section** appears inside the timer card.
+- **PSC / ARR** sliders and boxes, and a **per-channel Pulse** slider + High/Low polarity.
+- The **Frequency / Period** boxes show the current value; type a target (e.g. `20k`, `100us`) and press **Enter** to auto-compute PSC/ARR.
+- **Advanced timers** (e.g. TIM1) show **Complementary & Dead-time**: enable CHxN, set dead-time in **ns ⇄ DTG** with a live zoomed edge view.
+
 ### Tab 3 — Code Generation
 - Review the generated `main.c`, then **Copy**, **Download main.c**, or **Download all files (ZIP)**.
 - The ZIP includes the driver sources/headers, a startup file and an optional **Keil uVision `.uvprojx`** project with include paths pre-configured.
@@ -120,7 +129,7 @@ Generated code targets the matching vendor SDK for each family:
 ## 🗂 Repository layout
 
 ```
-OpenMCU_Cube1_5_7.html   ← the entire application (single self-contained file)
+OpenMCU_Cube1_5_8.html   ← the entire application (single self-contained file)
 docs/                    ← screenshots used in this README
 LICENSE                  ← MIT license
 CHANGELOG.md             ← version history (maintained from v1.5.7 on)
@@ -134,7 +143,7 @@ SECURITY.md              ← how to report vulnerabilities
 
 The whole application is **one self-contained HTML file** (HTML + CSS + JavaScript, including the embedded vendor SDK payloads). Working on it is intentionally simple:
 
-1. Open `OpenMCU_Cube1_5_7.html` in any text editor.
+1. Open `OpenMCU_Cube1_5_8.html` in any text editor.
 2. Edit, then refresh the browser tab to test — no build step.
 3. Before committing:
    - bump the version (badge in the top bar, document title, generated-code headers);
