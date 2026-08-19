@@ -33,6 +33,17 @@ maintained properly with every release.
 ## [1.5.7] — 2026-08-19 — first public release
 
 ### Fixed
+- **HK32 GPIO output mode (build fix):** configuring a pin as GPIO Output on the
+  non-F1 HK families (**HK32F030M, HK32F0301M, HK32C030**) generated
+  `GPIO_Mode_Out_PP` / `GPIO_Mode_Out_OD`, macros that **do not exist** in those
+  StdPeriph drivers (they only define `GPIO_Mode_OUT` + a separate
+  `GPIO_OType_PP/OD` field) — the build failed with "undeclared identifier".
+  The generator now emits the correct `GPIO_Mode_OUT` + `GPIO_OType_PP/OD` pair
+  for those families, while **HK32F103** keeps its valid `GPIO_Mode_Out_PP/OD`.
+- Verified against the actual embedded driver headers that **every** `GPIO_*` /
+  `GPIOMUX_*` token emitted for HK32F030M, HK32F0301M, HK32C030 and HK32F103
+  (Input with all pull options, Output PP/OD, Alternate Function, Analog) exists
+  in the shipped SDK — no more undefined-macro build errors for GPIO config.
 - **Clock tree diagram — layout:** reworked the bottom (peripheral-bus) area so
   labels and lines no longer overlap: larger peripheral boxes with correctly spaced
   title/value text, bus names no longer collide with the first box, and multi-bus
