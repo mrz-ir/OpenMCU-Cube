@@ -5,8 +5,8 @@
 ### An STM32CubeMX-style configurator for **HK32** & **PY32** microcontrollers
 
 <p align="center">
-  <a href="https://mrz-ir.github.io/OpenMCU-Cube/OpenMCU_Cube1_5_7.html" target="_blank">
-    <img src="https://img.shields.io/badge/⚡_Try_Now-OpenMCU_Cube_v1.5.7-4F46E5?style=for-the-badge" alt="Try Now" width="50%">
+  <a href="https://mrz-ir.github.io/OpenMCU-Cube/OpenMCU_Cube.html" target="_blank">
+    <img src="https://img.shields.io/badge/⚡_Try_Now-OpenMCU_Cube-4F46E5?style=for-the-badge" alt="Try Now" width="50%">
   </a>
 </p>
 
@@ -85,7 +85,7 @@ Generated code targets the matching vendor SDK for each family:
 3. Pick your **Device** in the top bar, configure **pins → clocks**, then generate **code**.
 
 > 💡 **Tip:** enable **GitHub Pages** on the repository (Settings → Pages → branch `main`) and the app is also usable online at
-> `https://mrz-ir.github.io/OpenMCU-Cube/OpenMCU_Cube1_5_7.html`.
+> `https://mrz-ir.github.io/OpenMCU-Cube/OpenMCU_Cube.html`.
 
 ![Mobile layout](docs/screenshot-mobile.png)
 
