@@ -385,6 +385,60 @@ html[data-theme="light"] .ckbox.active{stroke:#2f7d5c !important;}
 
 footer{max-width:1440px;margin:10px auto 40px;padding:0 24px;color:var(--text-dim);font-size:11.5px;line-height:1.9;}
 footer a{color:var(--text-dim);text-decoration:underline;}
+
+/* ---------- v1.5.8: timer waveform designer ---------- */
+input.num{
+  width:88px;background:var(--panel-2);border:1px solid var(--border);color:var(--text-bright);
+  border-radius:6px;padding:6px 8px;font-family:var(--mono);font-size:12.5px;text-align:right;
+}
+input.num:focus{outline:2px solid var(--blue);outline-offset:1px;}
+.wv{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:12px;background:var(--panel);}
+.wv-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.wv-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);}
+.wv-title .help{width:14px;height:14px;font-size:9px;margin:0 0 1px 5px;}
+.wv-dt h5 .help{width:14px;height:14px;font-size:9px;margin:0 0 1px 5px;}
+.wv-chips{display:flex;gap:8px;flex-wrap:wrap;}
+.wv-chip{background:var(--panel-2);border:1px solid var(--border);border-radius:7px;padding:4px 9px;font-size:11.5px;color:var(--text-dim);}
+.wv-chip b{font-family:var(--mono);color:var(--cyan);font-weight:700;}
+.wv-chip input.num{width:96px;padding:4px 6px;font-size:12px;}
+.wv-svg{width:100%;height:auto;display:block;}
+.wv-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:10.5px;color:var(--text-dim);margin:6px 0 2px;}
+.wv-legend .sw2{width:22px;height:3px;border-radius:2px;display:inline-block;vertical-align:middle;margin-right:4px;}
+.wv-chan{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:6px 0;border-top:1px dashed var(--border-soft);}
+.wv-chan .cn{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--text-bright);min-width:56px;}
+.wv-chan .cp{font-family:var(--mono);font-size:11px;color:var(--text-dim);min-width:56px;}
+.wv-chan input[type=range]{flex:1;min-width:110px;max-width:190px;accent-color:var(--amber);}
+.wv-chan .num{width:62px;padding:4px 6px;font-size:11.5px;}
+.wv-chan .pol{background:var(--panel-2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:3px 9px;font-size:10.5px;cursor:pointer;font-weight:600;}
+.wv-chan .pol.on{background:var(--green);border-color:var(--green);color:#04211d;}
+.wv-chan .duty{font-size:10.5px;color:var(--text-dim);font-family:var(--mono);}
+.wv-dt{border:1px dashed var(--border);border-radius:8px;padding:9px 11px;margin-top:9px;background:var(--panel-2);}
+.wv-dt h5{margin:0 0 7px;font-size:11px;color:var(--amber);text-transform:uppercase;letter-spacing:1px;}
+.wv-dt .row{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:6px;}
+.wv-dt .row label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-dim);min-width:64px;}
+.wv-dt input[type=range]{flex:1;min-width:140px;accent-color:var(--amber);}
+.wv-zoom{margin-top:8px;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:var(--panel);}
+.wv-nopins{border:1px dashed var(--amber);border-radius:8px;padding:12px 14px;margin-top:10px;font-size:12px;color:var(--text-dim);line-height:1.7;background:var(--panel-2);}
+.wv-nopins b{color:var(--amber);}
+.wv-controls{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:8px 0 2px;padding:8px 10px;border:1px solid var(--border-soft);border-radius:8px;background:var(--panel-2);}
+.wv-controls .ctl2{display:flex;align-items:center;gap:8px;flex:1;min-width:200px;}
+.wv-controls label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-dim);min-width:34px;}
+.wv-controls input[type=range]{flex:1;min-width:90px;accent-color:var(--green);}
+.wv-controls .num{width:74px;padding:4px 6px;font-size:12px;}
+svg text{font-family:var(--mono);}
+.wv-axis{font-size:12px;fill:var(--text-dim);}
+.wv-lbl{font-size:13px;fill:var(--text-bright);}
+.wv-lbl.dim{fill:var(--text-dim);}
+.wv-lbl.amber{fill:var(--amber);}
+.wv-lbl.green{fill:var(--green);}
+.wv-lbl.mag{fill:var(--magenta);}
+.wv-lbl.blue{fill:var(--blue);}
+html[data-theme="light"] .wv-lbl{fill:#26322b;}
+html[data-theme="light"] .wv-lbl.dim{fill:#5b6a60;}
+html[data-theme="light"] .wv-lbl.amber{fill:#b5791f;}
+html[data-theme="light"] .wv-lbl.green{fill:#0e7a44;}
+html[data-theme="light"] .wv-lbl.mag{fill:#a04f88;}
+html[data-theme="light"] .wv-lbl.blue{fill:#3d6fd8;}
 </style>
 </head>
 <body>
@@ -417,7 +471,7 @@ footer a{color:var(--text-dim);text-decoration:underline;}
       </svg>
       <div class="mark"><span class="b-open">Open</span><span class="b-mcu">MCU</span><span class="b-cube"> Cube</span></div>
     </div>
-    <div class="tag"><span class="ver">v1.5.7</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span></div>
+    <div class="tag"><span class="ver">v1.5.8</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span></div>
   </div>
 </header>
 
@@ -2546,7 +2600,7 @@ function genHALPeriphStubs(L, map){
         L.push('  /* mode: ' + (p.mode||'PWM Generation') + ' - channel configuration */');
         chPins.forEach(ch=>{
           L.push('  sConfigOC.OCMode = TIM_OCMODE_PWM1;');
-          L.push('  sConfigOC.Pulse = ' + (p.pulse||0) + ';');
+          L.push('  sConfigOC.Pulse = ' + wvChPulse(p, ch.ch) + ';');
           L.push('  sConfigOC.OCPolarity = TIM_OCPOLARITY_' + (p.chpol==='Low'?'LOW':'HIGH') + ';');
           L.push('  HAL_TIM_PWM_ConfigChannel(&' + h + ', &sConfigOC, TIM_CHANNEL_' + ch.ch + ');');
           L.push('  HAL_TIM_PWM_Start(&' + h + ', TIM_CHANNEL_' + ch.ch + ');');
@@ -2898,7 +2952,7 @@ function genStdPeriphStubs(L, map){
         chPins.forEach(ch=>{
           L.push('  TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;');
           L.push('  TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;');
-          L.push('  TIM_OCInitStructure.TIM_Pulse = ' + (p.pulse||0) + ';');
+          L.push('  TIM_OCInitStructure.TIM_Pulse = ' + wvChPulse(p, ch.ch) + ';');
           L.push('  TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_' + (p.chpol==='Low'?'Low':'High') + ';');
           L.push('  TIM_OC' + ch.ch + 'Init(' + k + ', &TIM_OCInitStructure);');
           L.push('  TIM_OC' + ch.ch + 'PreloadConfig(' + k + ', TIM_OCPreload_Enable);');
@@ -3185,7 +3239,7 @@ function sdkReadmeText(){
     HKF0301M:'https://github.com/IOsetting/hk32f030m-template (Libraries/HK32F030M_Driver)',
   };
   return [
-    'OpenMCU Cube v1.5.7 - generated project',
+    'OpenMCU Cube v1.5.8 - generated project',
     '=================================',
     'Target : ' + curPkg().label,
     'SDK    : ' + (isHALStyle() ? (sdkStyle()==='PY32F002B_HAL' ? 'py32f002b HAL' : 'py32f0xx HAL') : sdkStyle().replace('HK_STD_','') + ' StdPeriph library'),
@@ -3328,7 +3382,7 @@ function generateUvprojx(hdrFiles){
 '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>',
 '<Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="project_projx.xsd">',
 '  <SchemaVersion>2.1</SchemaVersion>',
-'  <Header>### uVision Project, generated by OpenMCU Cube v1.5.7 — verify Device/IROM/IRAM against your exact chip'+(vendor?' (Vendor pack: '+packId+')':' (no vendor pack referenced — pick your device manually)')+' before use ###</Header>',
+'  <Header>### uVision Project, generated by OpenMCU Cube v1.5.8 — verify Device/IROM/IRAM against your exact chip'+(vendor?' (Vendor pack: '+packId+')':' (no vendor pack referenced — pick your device manually)')+' before use ###</Header>',
 '  <Targets>',
 '    <Target>',
 '      <TargetName>Target 1</TargetName>',
@@ -3583,7 +3637,7 @@ function toast(msg,type){
    ============================================================ */
 (function(){
   const V14 = '1.5.2';
-  document.title = 'OpenMCU Cube v1.5.7 · HK32 / PY32 Configurator';
+  document.title = 'OpenMCU Cube v1.5.8 · HK32 / PY32 Configurator';
 
   const AF_HKF0301M = {
     PA0:{af:[["TIM1_BKIN",3],["TIM2_CH3",4],["MCO",5]],analog:[]},
@@ -3729,10 +3783,13 @@ function toast(msg,type){
     }
     const initApi=mode==='PWM Generation'?'HAL_TIM_PWM_Init':mode==='Input Capture'?'HAL_TIM_IC_Init':'HAL_TIM_OC_Init';
     L.push('static void MX_'+k+'_Init(void)');L.push('{');if(clk)L.push(clk);L.push('  '+h+'.Instance = '+k+';');L.push('  '+h+'.Init.Prescaler = '+(p.psc||47)+';');L.push('  '+h+'.Init.CounterMode = TIM_COUNTERMODE_UP;');L.push('  '+h+'.Init.Period = '+(p.arr||999)+';');L.push('  '+h+'.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;');L.push('  '+h+'.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;');L.push('  if ('+initApi+'(&'+h+') != HAL_OK) { Error_Handler(); }');
-    pins.map(x=>timChannel(x.fn)).filter(Boolean).forEach(ch=>{
-      if(mode==='Input Capture'){L.push('  { TIM_IC_InitTypeDef sConfigIC = {0};');L.push('    sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;');L.push('    sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;');L.push('    sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;');L.push('    sConfigIC.ICFilter = 0;');L.push('    if (HAL_TIM_IC_ConfigChannel(&'+h+', &sConfigIC, TIM_CHANNEL_'+ch.ch+') != HAL_OK) { Error_Handler(); }');L.push('    if (HAL_TIM_IC_Start(&'+h+', TIM_CHANNEL_'+ch.ch+') != HAL_OK) { Error_Handler(); } }');}
-      else {L.push('  { TIM_OC_InitTypeDef sConfigOC = {0};');L.push('    sConfigOC.OCMode = '+(mode==='PWM Generation'?'TIM_OCMODE_PWM1':'TIM_OCMODE_TOGGLE')+';');L.push('    sConfigOC.Pulse = '+(p.pulse||0)+';');L.push('    sConfigOC.OCPolarity = TIM_OCPOLARITY_'+(p.chpol==='Low'?'LOW':'HIGH')+';');L.push('    sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;');L.push('    if ('+(mode==='PWM Generation'?'HAL_TIM_PWM_ConfigChannel':'HAL_TIM_OC_ConfigChannel')+'(&'+h+', &sConfigOC, TIM_CHANNEL_'+ch.ch+') != HAL_OK) { Error_Handler(); }');L.push('    if ('+(mode==='PWM Generation'?'HAL_TIM_PWM_Start':'HAL_TIM_OC_Start')+'(&'+h+', TIM_CHANNEL_'+ch.ch+') != HAL_OK) { Error_Handler(); } }');}
-    });
+    (function(){ const _grp={};
+      pins.map(x=>timChannel(x.fn)).filter(Boolean).forEach(ch=>{ (_grp[ch.ch]=_grp[ch.ch]||[]).push(ch); });
+      Object.keys(_grp).forEach(cn=>{ const _g=_grp[cn]; const _main=_g.some(e=>!e.n); const _nch=_g.some(e=>e.n);
+      if(mode==='Input Capture'){L.push('  { TIM_IC_InitTypeDef sConfigIC = {0};');L.push('    sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;');L.push('    sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;');L.push('    sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;');L.push('    sConfigIC.ICFilter = 0;');L.push('    if (HAL_TIM_IC_ConfigChannel(&'+h+', &sConfigIC, TIM_CHANNEL_'+cn+') != HAL_OK) { Error_Handler(); }');L.push('    if (HAL_TIM_IC_Start(&'+h+', TIM_CHANNEL_'+cn+') != HAL_OK) { Error_Handler(); } }');}
+      else {L.push('  { TIM_OC_InitTypeDef sConfigOC = {0};');L.push('    sConfigOC.OCMode = '+(mode==='PWM Generation'?'TIM_OCMODE_PWM1':'TIM_OCMODE_TOGGLE')+';');L.push('    sConfigOC.Pulse = '+wvChPulse(p,cn)+';');L.push('    sConfigOC.OCPolarity = TIM_OCPOLARITY_'+((p['chpol'+cn]||p.chpol)==='Low'?'LOW':'HIGH')+';');L.push('    sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;');L.push('    if ('+(mode==='PWM Generation'?'HAL_TIM_PWM_ConfigChannel':'HAL_TIM_OC_ConfigChannel')+'(&'+h+', &sConfigOC, TIM_CHANNEL_'+cn+') != HAL_OK) { Error_Handler(); }');if(_main)L.push('    if ('+(mode==='PWM Generation'?'HAL_TIM_PWM_Start':'HAL_TIM_OC_Start')+'(&'+h+', TIM_CHANNEL_'+cn+') != HAL_OK) { Error_Handler(); }');if(_nch&&p.comp&&mode==='PWM Generation')L.push('    if (HAL_TIMEx_PWMN_Start(&'+h+', TIM_CHANNEL_'+cn+') != HAL_OK) { Error_Handler(); } }');}
+      });})();
+    if(p.comp&&mode==='PWM Generation'){L.push('  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};');L.push('  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;');L.push('  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;');L.push('  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;');L.push('  sBreakDeadTimeConfig.DeadTime = '+wvDtg(k)+';');L.push('  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;');L.push('  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;');L.push('  sBreakDeadTimeConfig.BreakFilter = 0;');L.push('  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;');L.push('  if (HAL_TIMEx_ConfigBreakDeadTime(&'+h+', &sBreakDeadTimeConfig) != HAL_OK) { Error_Handler(); }');}
     L.push('/* USER CODE BEGIN '+k+' */');L.push('/* USER CODE END '+k+' */');L.push('}');
   }
   function v14GenHALADC(L,p,pins){
@@ -3818,7 +3875,7 @@ function toast(msg,type){
     const chs=pins.map(x=>timChannel(x.fn)).filter(Boolean);
     if(mode==='Encoder'){L.push('  TIM_EncoderInterfaceConfig('+k+', TIM_EncoderMode_TI12, TIM_ICPolarity_Rising, TIM_ICPolarity_Rising);');L.push('  TIM_Cmd('+k+', ENABLE);');}
     else if(mode==='Input Capture'){chs.forEach(ch=>{L.push('  { TIM_ICInitTypeDef TIM_ICInitStructure;');L.push('    TIM_ICStructInit(&TIM_ICInitStructure);');L.push('    TIM_ICInitStructure.TIM_Channel = TIM_Channel_'+ch.ch+';');L.push('    TIM_ICInitStructure.TIM_ICPolarity = TIM_ICPolarity_Rising;');L.push('    TIM_ICInitStructure.TIM_ICSelection = TIM_ICSelection_DirectTI;');L.push('    TIM_ICInitStructure.TIM_ICPrescaler = TIM_ICPSC_DIV1;');L.push('    TIM_ICInitStructure.TIM_ICFilter = 0;');L.push('    TIM_ICInit('+k+', &TIM_ICInitStructure); }');});L.push('  TIM_Cmd('+k+', ENABLE);');}
-    else {chs.forEach(ch=>{L.push('  { TIM_OCInitTypeDef TIM_OCInitStructure;');L.push('    TIM_OCStructInit(&TIM_OCInitStructure);');L.push('    TIM_OCInitStructure.TIM_OCMode = '+(mode==='PWM Generation'?'TIM_OCMode_PWM1':'TIM_OCMode_Toggle')+';');L.push('    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;');L.push('    TIM_OCInitStructure.TIM_Pulse = '+(p.pulse||0)+';');L.push('    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_'+(p.chpol==='Low'?'Low':'High')+';');L.push('    TIM_OC'+ch.ch+'Init('+k+', &TIM_OCInitStructure);');L.push('    TIM_OC'+ch.ch+'PreloadConfig('+k+', TIM_OCPreload_Enable); }');});L.push('  TIM_ARRPreloadConfig('+k+', ENABLE);');L.push('  TIM_Cmd('+k+', ENABLE);');if(k==='TIM1'&&mode==='PWM Generation')L.push('  TIM_CtrlPWMOutputs(TIM1, ENABLE);');}
+    else {const _grp={};chs.forEach(ch=>{(_grp[ch.ch]=_grp[ch.ch]||[]).push(ch);});Object.keys(_grp).forEach(cn=>{const _g=_grp[cn];const _main=_g.some(e=>!e.n);const _nch=_g.some(e=>e.n);L.push('  { TIM_OCInitTypeDef TIM_OCInitStructure;');L.push('    TIM_OCStructInit(&TIM_OCInitStructure);');L.push('    TIM_OCInitStructure.TIM_OCMode = '+(mode==='PWM Generation'?'TIM_OCMode_PWM1':'TIM_OCMode_Toggle')+';');L.push('    TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_'+( _main?'Enable':'Disable')+';');L.push('    TIM_OCInitStructure.TIM_Pulse = '+wvChPulse(p,cn)+';');L.push('    TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_'+(wvPol(p,cn)==='Low'?'Low':'High')+';');L.push('    TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_'+( _nch&&p.comp?'Enable':'Disable')+';');L.push('    TIM_OC'+cn+'Init('+k+', &TIM_OCInitStructure);');L.push('    TIM_OC'+cn+'PreloadConfig('+k+', TIM_OCPreload_Enable); }');});L.push('  TIM_ARRPreloadConfig('+k+', ENABLE);');L.push('  TIM_Cmd('+k+', ENABLE);');if(p.comp&&mode==='PWM Generation'){L.push('  TIM_BDTRInitTypeDef TIM_BDTRInitStructure;');L.push('  TIM_BDTRStructInit(&TIM_BDTRInitStructure);');L.push('  TIM_BDTRInitStructure.TIM_DeadTime = '+wvDtg(k)+';');L.push('  TIM_BDTRConfig('+k+', &TIM_BDTRInitStructure);');}if((k==='TIM1'||p.comp)&&mode==='PWM Generation')L.push('  TIM_CtrlPWMOutputs('+k+', ENABLE);');}
     L.push('/* USER CODE BEGIN '+k+' */');L.push('/* USER CODE END '+k+' */');L.push('}');
   }
   function v14GenStdADC(L,p,pins,sdk){
@@ -3836,7 +3893,7 @@ function toast(msg,type){
     const uvLine = (uvInfo && uvInfo.vendor)
       ? ' - Vendor/Device pack "'+uvInfo.packId+'" is referenced and is a real, installable Keil pack (install via Pack Installer if missing); pick your exact chip in Options for Target -> Device if it differs from '+uvInfo.device+'.'
       : ' - No vendor device pack is referenced for this MCU family (none found in the public Keil pack index); pick your exact chip manually in Options for Target -> Device once a matching pack is installed.';
-    return ['OpenMCU Cube v1.5.7 - generated configuration','===============================================','Target: '+curPkg().label,'Series: '+curSeries().label,'SDK reference: '+(links[state.series]||'vendor SDK'),'',
+    return ['OpenMCU Cube v1.5.8 - generated configuration','===============================================','Target: '+curPkg().label,'Series: '+curSeries().label,'SDK reference: '+(links[state.series]||'vendor SDK'),'',
       'Contents:',' - main.c                : generated init code (edit only between USER CODE BEGIN/END)',' - Drivers/              : required CMSIS device + peripheral headers (from the official SDK)',' - project_settings.json : full configurator state (device/pins/peripherals/clock tree/project name)',' - <project>.uvprojx     : Keil uVision5 project (only if the "Keil uVision project" checkbox was on)','',
       'Resuming / editing this project later:',' - Reopen OpenMCU Cube, go to the code tab, and use the upload box to select main.c AND project_settings.json together.',' - Selecting project_settings.json restores the device, pin map, peripherals, clock tree, project name AND the Keil-project checkbox state exactly as saved.',' - The output filename field controls the .zip archive name and the .uvprojx file name; the single .c download and the file inside the zip are always main.c.','',
       'Keil uVision project (.uvprojx):',
@@ -3849,7 +3906,7 @@ function toast(msg,type){
   };
 
   /* version badge */
-  setTimeout(()=>{try{const logo=document.querySelector('.logo .tag');if(logo)logo.innerHTML='<span class="ver">v1.5.7</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';}catch(_){}} ,0);
+  setTimeout(()=>{try{const logo=document.querySelector('.logo .tag');if(logo)logo.innerHTML='<span class="ver">v1.5.8</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';}catch(_){}} ,0);
 })();
 
 
@@ -3960,7 +4017,7 @@ function toast(msg,type){
     const iromStart='0x08000000', iramStart='0x20000000';
     const iromSize='0x'+info.flash.toString(16), iramSize='0x'+info.ram.toString(16);
     const sim=x.family==='HKF103'?'SARMCM3.DLL':'SARMCM1.DLL', cpuArg=x.family==='HKF103'?'-pCM3':'-pCM0';
-    const header='### uVision Project, generated by OpenMCU Cube v1.5.7 — exact HK32 DFP metadata: '+pack.packId+' / '+x.device+' ###';
+    const header='### uVision Project, generated by OpenMCU Cube v1.5.8 — exact HK32 DFP metadata: '+pack.packId+' / '+x.device+' ###';
     const startup=info.startup, algo=info.algo, svd=info.svd;
     return [
 '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>',
@@ -4018,7 +4075,7 @@ function toast(msg,type){
   };
 
   setTimeout(()=>{try{
-    const tag=document.querySelector('.logo .tag'); if(tag) tag.innerHTML='<span class="ver">v1.5.7</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';
+    const tag=document.querySelector('.logo .tag'); if(tag) tag.innerHTML='<span class="ver">v1.5.8</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';
   }catch(_){}} ,0);
 })();
 
@@ -4319,7 +4376,7 @@ function patchHalConf(text){
   };
   setVal('HSE_VALUE', Math.round((Number(c.hseFreq)||8)*1e6));
   setVal('HSI_VALUE', Math.round((Number(c.hsi)||8)*1e6));
-  return '/* Module selection patched by OpenMCU Cube v1.5.7 to match the enabled\r\n'+
+  return '/* Module selection patched by OpenMCU Cube v1.5.8 to match the enabled\r\n'+
          '   peripherals. HAL_DMA stays on: the SPI/I2C/TIM/UART/ADC headers all\r\n'+
          '   reference DMA_HandleTypeDef unconditionally. */\r\n' + text;
 }
@@ -4346,7 +4403,7 @@ function patchStdConf(text){
     text = text.replace(/^[ \t]*(?:\/\/)?[ \t]*#define[ \t]+SYSCLK_SOURCE[ \t].*$/m,
                         '#define SYSCLK_SOURCE '+src);
   }
-  return '/* SYSCLK_SOURCE set by OpenMCU Cube v1.5.7 from the Clock tab. */\r\n'+text;
+  return '/* SYSCLK_SOURCE set by OpenMCU Cube v1.5.8 from the Clock tab. */\r\n'+text;
 }
 
 
@@ -4384,7 +4441,7 @@ py32AfMacro = function(pinName, fnName){
 function itHeaderText(){
   const info=sdkInfo(); const g='__'+info.itBase.toUpperCase()+'_IT_H';
   const m3 = info.core==='Cortex-M3';
-  const L=['/* Generated by OpenMCU Cube v1.5.7 */','#ifndef '+g,'#define '+g,
+  const L=['/* Generated by OpenMCU Cube v1.5.8 */','#ifndef '+g,'#define '+g,
     '#ifdef __cplusplus','extern "C" {','#endif','',
     'void NMI_Handler(void);','void HardFault_Handler(void);'];
   if(m3){ L.push('void MemManage_Handler(void);'); L.push('void BusFault_Handler(void);'); L.push('void UsageFault_Handler(void);'); }
@@ -4396,7 +4453,7 @@ function itHeaderText(){
 }
 function itSourceText(){
   const info=sdkInfo(); const hal=info.style==='HAL'; const m3=info.core==='Cortex-M3';
-  const L=['/* Generated by OpenMCU Cube v1.5.7 — core exception handlers.',
+  const L=['/* Generated by OpenMCU Cube v1.5.8 — core exception handlers.',
     '   USER CODE blocks here are preserved when you re-import this file. */',
     '#include "'+info.mainInclude+'"',
     '#include "'+info.itBase+'_it.h"','',
@@ -4428,7 +4485,7 @@ function itSourceText(){
    weak default and gives users a hook. */
 function mspText(){
   const info=sdkInfo();
-  return ['/* Generated by OpenMCU Cube v1.5.7 */',
+  return ['/* Generated by OpenMCU Cube v1.5.8 */',
     '#include "'+info.mainInclude+'"','',
     'void HAL_MspInit(void)','{',
     '/* USER CODE BEGIN MSP_INIT */',
@@ -4610,7 +4667,7 @@ function uvprojxText(allFiles){
 '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>',
 '<Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="project_projx.xsd">',
 '  <SchemaVersion>2.1</SchemaVersion>',
-'  <Header>### uVision Project, generated by OpenMCU Cube v1.5.7 ###</Header>',
+'  <Header>### uVision Project, generated by OpenMCU Cube v1.5.8 ###</Header>',
 '  <Targets>',
 '    <Target>',
 '      <TargetName>'+out+'</TargetName>',
@@ -4851,7 +4908,7 @@ function uvoptxText(){
 '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>',
 '<ProjectOpt xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="project_optx.xsd">',
 '  <SchemaVersion>1.0</SchemaVersion>',
-'  <Header>### uVision Project, generated by OpenMCU Cube v1.5.7 ###</Header>',
+'  <Header>### uVision Project, generated by OpenMCU Cube v1.5.8 ###</Header>',
 '  <Extensions><cExt>*.c</cExt><aExt>*.s*; *.src; *.a*</aExt><oExt>*.obj; *.o</oExt><lExt>*.lib</lExt><tExt>*.txt; *.h; *.inc; *.md</tExt><pExt>*.plm</pExt><CppX>*.cpp</CppX><nMigrate>0</nMigrate></Extensions>',
 '  <Target>',
 '    <TargetName>'+out+'</TargetName>',
@@ -4958,7 +5015,7 @@ function readmeText(files, includeUv){
   const cs=files.filter(f=>/\.c$/i.test(f.name)).length;
   const hs=files.filter(f=>/\.h$/i.test(f.name)).length;
   return [
-'OpenMCU Cube v1.5.7 — generated project',
+'OpenMCU Cube v1.5.8 — generated project',
 '=======================================',
 'Target      : '+curPkg().label,
 'Keil device : '+info.device+'   (pack: '+info.pack+')',
@@ -5056,8 +5113,8 @@ buildZip = function(files){
 setTimeout(()=>{
   try{
     const tag=document.querySelector('.logo .tag');
-    if(tag) tag.innerHTML='<span class="ver">v1.5.7</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';
-    document.title = 'OpenMCU Cube v1.5.7 · HK32 / PY32 Configurator';
+    if(tag) tag.innerHTML='<span class="ver">v1.5.8</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';
+    document.title = 'OpenMCU Cube v1.5.8 · HK32 / PY32 Configurator';
     const lbl=document.querySelector('label[for="includeUvprojx"]') ||
               (document.getElementById('includeUvprojx')||{}).parentElement;
     if(lbl && /Keil/i.test(lbl.textContent||'')){
@@ -5158,5 +5215,491 @@ setTimeout(()=>{
 })();
 
 </script>
-</body>
+<script>
+/* ============================================================
+   v1.5.8 — Timer Waveform Designer
+   Time-based, mode-aware diagrams inside each enabled timer card:
+   · shows the output signal of every assigned channel pin
+   · graphic adjustment of PSC / ARR / per-channel Pulse / polarity
+   · target frequency or period box auto-computes PSC+ARR
+   · dead-time (ns ⇄ DTG) + complementary outputs for advanced timers
+   ============================================================ */
+(function(){
+  'use strict';
+
+  /* ---------- globals used by the (patched) code generators ---------- */
+  window.wvChPulse = function(p, ch){
+    const v = p && p['pulse'+ch]!==undefined && p['pulse'+ch]!=='' ? +p['pulse'+ch] : (p && p.pulse!==undefined && p.pulse!=='' ? +p.pulse : 0);
+    return isNaN(v)?0:v;
+  };
+  window.wvPol = function(p, ch){ return (p && p['chpol'+ch]!==undefined && p['chpol'+ch]!=='') ? p['chpol'+ch] : ((p && p.chpol)||'High'); };
+  window.wvDtg = function(k){
+    const p = periphParams(k);
+    const clk = wvTimerClkMHz(k)||32;
+    const tDTS = 1/(clk*1e6);
+    return Math.max(0, Math.min(255, Math.round((+p.dtns||0)*1e-9/tDTS)));
+  };
+
+  /* ---------- helpers ---------- */
+  function wvTimerClkMHz(k){
+    const S = curSeries();
+    const r = computeClock();
+    const bus = (S.apbBuses||[]).find(b=>b.periphs.indexOf(k)>=0);
+    return bus && bus.presc==='apb2' ? r.pclk2 : r.pclk;   /* APB clock (MHz) */
+  }
+  function wvTimerChannels(k){
+    const det = detectPeripherals()[k] || [];
+    return det.map(x=>timChannel(x.fn)).filter(Boolean);
+  }
+  function wvHasComp(k){
+    const af = curAF();
+    const re = new RegExp('^'+k.replace(/[$.*+?^=!:{}()|[\]\/\\]/g,'\\$&')+'_CH\\dN$');
+    return Object.keys(af).some(pn=> (af[pn].af||[]).some(([fn])=> re.test(fn)));
+  }
+  function wvPulse(p, ch){
+    const v = p['pulse'+ch]!==undefined && p['pulse'+ch]!=='' ? +p['pulse'+ch] : (p.pulse!==undefined && p.pulse!=='' ? +p.pulse : Math.round(((+p.arr||999)+1)*0.5)-1);
+    return Math.max(0, Math.min((+p.arr||999), isNaN(v)?0:v));
+  }
+  function wvPol(p, ch){ return (p['chpol'+ch]!==undefined && p['chpol'+ch]!=='') ? p['chpol'+ch] : (p.chpol||'High'); }
+  function wvFmtT(s){
+    if(s>=1e-3) return (s*1e3).toFixed(s>=10?1:2)+' ms';
+    if(s>=1e-6) return (s*1e6).toFixed(s>=1?2:1)+' µs';
+    return (s*1e9).toFixed(1)+' ns';
+  }
+  function wvFmtF(f){ return f>=1000 ? (f/1000).toFixed(3)+' kHz' : (f>=1? f.toFixed(2)+' Hz' : (f*1000).toFixed(2)+' mHz'); }
+  function wvParseUnit(v){
+    if(v===null||v===undefined) return null;
+    let t=String(v).trim().toLowerCase().replace(/\s+/g,'');
+    if(t==='') return null;
+    const m=t.match(/^([0-9]*\.?[0-9]+)([a-zµ]*)$/);
+    if(!m) return null;
+    const num=parseFloat(m[1]);
+    if(isNaN(num)||num<=0) return null;
+    const u=m[2];
+    const mul = (u==='khz'||u==='k')?1e3 : (u==='mhz'||u==='m')?1e6 : u==='ghz'?1e9 : u==='hz'?1 :
+                u==='ms'?1e-3 : (u==='us'||u==='µs')?1e-6 : u==='ns'?1e-9 : u==='s'?1 : 1;
+    return num*mul;
+  }
+  function wvComputePscArr(fClkMHz, target, isFreq){
+    const fClk = fClkMHz*1e6;
+    const tgt = isFreq ? target : 1/target;
+    if(!(tgt>0) || tgt>fClk) return null;
+    let best=null;
+    const coarse=256, fine=24;
+    for(let psc=0; psc<=65535; psc+=coarse){
+      const tick=(psc+1)/fClk;
+      const arr=Math.round(fClk/((psc+1)*tgt))-1;
+      if(arr<0||arr>65535) continue;
+      const actual=1/(tick*(arr+1));
+      const err=Math.abs(actual-tgt)/tgt;
+      const cand={psc,arr,actual,tick,err};
+      if(!best || cand.err<best.err-1e-12 || (Math.abs(cand.err-best.err)<1e-12 && cand.tick<best.tick)) best=cand;
+    }
+    if(best){
+      for(let psc=Math.max(0,best.psc-fine); psc<=Math.min(65535,best.psc+fine); psc++){
+        const tick=(psc+1)/fClk;
+        const arr=Math.round(fClk/((psc+1)*tgt))-1;
+        if(arr<0||arr>65535) continue;
+        const actual=1/(tick*(arr+1));
+        const err=Math.abs(actual-tgt)/tgt;
+        if(err<best.err-1e-12 || (Math.abs(err-best.err)<1e-12 && tick<best.tick)) best={psc,arr,actual,tick,err};
+      }
+    }
+    return best;
+  }
+
+  /* ---------- SVG: main wave (time-based, 3 periods) ---------- */
+  function wvSvg(k){
+    const p = periphParams(k);
+    const chs = wvTimerChannels(k);
+    const clk = wvTimerClkMHz(k)||32;
+    const psc = Math.max(0, +p.psc||0), arr = Math.max(0, +p.arr||999);
+    const tickS = (psc+1)/(clk*1e6);
+    const Tp = tickS*(arr+1);
+    const mode = p.mode||'PWM Generation';
+    const comp = !!p.comp;
+    const N = 3, W=1000, H0=64, Hch=78, padL=10, padR=12;
+    const xmax = N*Tp;
+    const X = t => padL + (t/xmax)*(W-padL-padR);
+    const rows = Math.max(1, chs.length);
+    const H = H0 + Hch*rows + 44;
+    const esc = s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    let s = `<svg class="wv-svg" id="wv-svg-${k}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+
+    /* time axis ticks (every period) */
+    for(let i=0;i<=N;i++){
+      const x=X(i*Tp);
+      const tu = i*Tp*1e6;
+      const lbl = tu>=1000 ? (tu/1000).toFixed(tu%1000?2:0)+' ms' : (tu<1? tu.toFixed(2): tu.toFixed(0))+' µs';
+      s+=`<line x1="${x}" y1="0" x2="${x}" y2="${H0}" stroke="var(--border-soft)" stroke-width="0.6"/>`;
+      s+=`<text x="${x}" y="${H0+13}" class="wv-axis" text-anchor="middle">${lbl}</text>`;
+    }
+    s+=`<text x="${W-padR}" y="${H0+24}" class="wv-lbl dim" text-anchor="end">period ${wvFmtT(Tp)} · ${wvFmtF(1/Tp)}</text>`;
+
+    /* counter sawtooth */
+    s+=`<text x="2" y="14" class="wv-lbl dim">CNT (0…${arr})</text>`;
+    let saw='';
+    const segs=16;
+    for(let pn=0;pn<N;pn++){
+      for(let i=0;i<segs;i++){
+        const t1=pn*Tp+i*Tp/segs, t2=pn*Tp+(i+1)*Tp/segs;
+        const v1=(i/segs)*(H0-16), v2=((i+1)/segs)*(H0-16);
+        saw+=`M ${X(t1)} ${H0-16-v1} L ${X((t1+t2)/2)} 8 L ${X(t2)} ${H0-16-v2} `;
+      }
+    }
+    s+=`<path d="${saw}" fill="none" stroke="#4d6154" stroke-width="1.1"/>`;
+
+    let ri=0;
+    const rowY = ()=>{ const y=H0+ri*Hch; ri++; return y; };
+
+    if(mode==='Encoder'){
+      ['CH1','CH2'].forEach(cn=>{
+        const ent = chs.find(e=>!e.n && e.ch===cn[2]);
+        if(!ent) return;
+        const y0=rowY();
+        const pin = detectPeripherals()[k].find(x=>timChannel(x.fn)&&timChannel(x.fn).ch===cn[2]&&!timChannel(x.fn).n);
+        s+=`<line x1="${padL}" y1="${y0+12}" x2="${W-padR}" y2="${y0+12}" stroke="var(--border-soft)" stroke-width="0.6"/>`;
+        const phase = cn==='CH1'?0:Tp/4;
+        let d='';
+        for(let pn=0;pn<N;pn++){
+          const t0=pn*Tp+phase;
+          d+=`M ${X(t0)} ${y0+Hch-24} L ${X(t0+Tp/2)} ${y0+Hch-24} L ${X(t0+Tp/2)} ${y0+10} L ${X(t0+Tp)} ${y0+10} L ${X(t0+Tp)} ${y0+Hch-24} `;
+        }
+        s+=`<path d="${d}" fill="none" stroke="var(--blue)" stroke-width="2"/>`;
+        s+=`<text x="2" y="${y0+14}" class="wv-lbl">${cn} · <tspan class="wv-lbl dim">${pin?pin.pin:''}</tspan></text>`;
+        s+=`<text x="${X(Tp*1.5)}" y="${y0+Hch-8}" class="wv-lbl blue" text-anchor="middle">quadrature input — 90° phase (×1/×2/×4)</text>`;
+      });
+      const y0=H0+ri*Hch;
+      s+=`<path d="M ${X(Tp*1.5)} ${y0+16} l 12 0 l 0 4 l 8 -8 l -8 -8 l 0 4 l -12 0 z" fill="var(--amber)"/>`;
+      s+=`<text x="${X(Tp*1.5)+26}" y="${y0+18}" class="wv-lbl amber">counting up</text>`;
+    } else if(mode==='Input Capture'){
+      const main = chs.find(e=>!e.n);
+      if(main){
+        const y0=rowY();
+        const pin = detectPeripherals()[k].find(x=>timChannel(x.fn)&&!timChannel(x.fn).n);
+        s+=`<line x1="${padL}" y1="${y0+12}" x2="${W-padR}" y2="${y0+12}" stroke="var(--border-soft)" stroke-width="0.6"/>`;
+        let d='';
+        for(let pn=0;pn<N;pn++){
+          const t0=pn*Tp;
+          d+=`M ${X(t0)} ${y0+Hch-24} L ${X(t0+Tp/2)} ${y0+Hch-24} L ${X(t0+Tp/2)} ${y0+10} L ${X(t0+Tp)} ${y0+10} L ${X(t0+Tp)} ${y0+Hch-24} `;
+        }
+        s+=`<path d="${d}" fill="none" stroke="var(--blue)" stroke-width="2"/>`;
+        s+=`<text x="2" y="${y0+14}" class="wv-lbl">CH${main.ch} · <tspan class="wv-lbl dim">${pin?pin.pin:''}</tspan> <tspan class="wv-lbl dim">(input)</tspan></text>`;
+        for(let pn=0;pn<N;pn++){
+          const t=pn*Tp;
+          s+=`<path d="M ${X(t)} ${y0-6} l 0 8 l -6 -5 l 6 -9 l 6 9 l -6 5 z" fill="var(--amber)"/>`;
+          s+=`<text x="${X(t)}" y="${y0-10}" class="wv-lbl amber" text-anchor="middle">0</text>`;
+        }
+        s+=`<text x="${X(Tp*1.5)}" y="${y0+Hch-8}" class="wv-lbl blue" text-anchor="middle">input — capture on rising edge (captured CNT shown)</text>`;
+      }
+    } else {
+      /* PWM / Output Compare channels + complementaries */
+      chs.forEach(ent=>{
+        const y0=rowY();
+        const pin = detectPeripherals()[k].find(x=>{ const c=timChannel(x.fn); return c && c.ch===ent.ch && !!c.n===!!ent.n; });
+        const pulse = wvPulse(p, ent.ch);
+        const hi = mode!=='PWM Generation' ? true : (wvPol(p,ent.ch)!=='Low');
+        const up=y0+10, dn=y0+Hch-24;
+        s+=`<line x1="${padL}" y1="${y0+12}" x2="${W-padR}" y2="${y0+12}" stroke="var(--border-soft)" stroke-width="0.6"/>`;
+        let d='';
+        if(mode==='PWM Generation'){
+          const hiT = tickS*pulse;
+          if(ent.n){
+            /* complementary: inverted with dead-time shift */
+            const DT = comp ? Math.min((+p.dtns||0)*1e-9, tickS*255) : 0;
+            const nsamp=240;
+            for(let i=0;i<=nsamp;i++){
+              const t=(xmax*i)/nsamp;
+              const ts = t-DT;
+              let on=false;
+              if(ts>=0){
+                const tp=((ts%Tp)+Tp)%Tp;
+                on = hi ? (tp<hiT) : (tp>=hiT);
+              }
+              const lvl = on? dn : up;
+              const x=X(t);
+              d+=(i===0?`M ${x} ${lvl}`:` L ${x} ${lvl}`);
+            }
+            s+=`<path d="${d}" fill="none" stroke="var(--magenta)" stroke-width="2"/>`;
+            /* DT gap marker at the main channel falling edge */
+            const fallT=hiT;
+            const g0=X(fallT), g1=Math.max(X(fallT+DT), g0+4);
+            s+=`<rect x="${g0}" y="${Math.min(up,dn)-5}" width="${g1-g0}" height="7" fill="var(--amber)" opacity="0.45"/>`;
+            s+=`<text x="${(g0+g1)/2}" y="${Math.min(up,dn)-10}" class="wv-lbl amber" text-anchor="middle" style="font-size:10.5px">DT ${wvFmtT(DT)}</text>`;
+          } else {
+            for(let pn=0;pn<N;pn++){
+              const t0=pn*Tp;
+              if(hi){
+                d+=`M ${X(t0)} ${dn} L ${X(t0+hiT)} ${dn} L ${X(t0+hiT)} ${up} L ${X(t0+Tp)} ${up} L ${X(t0+Tp)} ${dn} `;
+              } else {
+                d+=`M ${X(t0)} ${up} L ${X(t0+hiT)} ${up} L ${X(t0+hiT)} ${dn} L ${X(t0+Tp)} ${dn} L ${X(t0+Tp)} ${up} `;
+              }
+            }
+            s+=`<path d="${d}" fill="none" stroke="var(--green)" stroke-width="2"/>`;
+            const px=X(tickS*pulse);
+            s+=`<line x1="${px}" y1="${y0}" x2="${px}" y2="${y0+Hch-12}" stroke="var(--amber)" stroke-width="1.3" stroke-dasharray="4 3"/>`;
+            s+=`<text x="${px+4}" y="${y0+12}" class="wv-lbl amber">pulse ${pulse}</text>`;
+          }
+        } else {
+          /* Output Compare toggle */
+          const matchT = tickS*pulse;
+          let level = 0;
+          for(let pn=0;pn<N;pn++){
+            const t0=pn*Tp, m=t0+matchT;
+            const from = level? up:dn;
+            d+=`M ${X(t0)} ${from} L ${X(m)} ${from} `;
+            level = level?0:1;
+            d+=`L ${X(m)} ${level?up:dn} L ${X(t0+Tp)} ${level?up:dn} `;
+          }
+          s+=`<path d="${d}" fill="none" stroke="var(--green)" stroke-width="2"/>`;
+          const px=X(tickS*pulse);
+          s+=`<circle cx="${px}" cy="${up}" r="3.2" fill="var(--amber)"/>`;
+          s+=`<text x="${px+7}" y="${y0+12}" class="wv-lbl amber">match @ ${pulse}</text>`;
+        }
+        s+=`<text x="${padL+2}" y="${up+4}" class="wv-lbl dim" style="font-size:11px">H</text>`;
+        s+=`<text x="${padL+2}" y="${dn+8}" class="wv-lbl dim" style="font-size:11px">L</text>`;
+        if(!ent.n && mode==='PWM Generation'){
+          const duty = 100*pulse/(arr+1);
+          s+=`<text x="${X(Tp*0.5)}" y="${up+4}" class="wv-lbl" text-anchor="middle" style="font-size:11.5px" opacity="0.9">duty ${duty.toFixed(1)}%</text>`;
+        }
+        const color = ent.n ? 'class="wv-lbl mag"' : 'class="wv-lbl"';
+        s+=`<text x="2" y="${y0+14}" ${color}>CH${ent.ch}${ent.n?'N':''} · <tspan class="wv-lbl dim">${pin?pin.pin:''}</tspan></text>`;
+      });
+    }
+    s+=`</svg>`;
+    return s;
+  }
+
+  /* ---------- SVG: dead-time zoom ---------- */
+  function wvZoom(k){
+    const p = periphParams(k);
+    const chs = wvTimerChannels(k);
+    const main = chs.find(e=>!e.n);
+    const comp = chs.find(e=>e.n && e.ch===main.ch);
+    if(!main || !comp || !p.comp) return '';
+    const clk = wvTimerClkMHz(k)||32;
+    const psc = Math.max(0,+p.psc||0), arr=Math.max(0,+p.arr||999);
+    const tickS = (psc+1)/(clk*1e6);
+    const pulse = wvPulse(p, main.ch);
+    const DT = Math.min((+p.dtns||0)*1e-9, tickS*255);
+    const fallT = tickS*pulse;
+    const riseN = fallT + DT;
+    const W=640, H=180, pad=18;
+    const win = Math.max(2e-6, tickS*(arr+1)*0.02, DT*3);
+    const center = fallT + DT/2;
+    const t0 = center - win/2, t1 = center + win/2;
+    const X = t => pad + ((t-t0)/(t1-t0))*(W-2*pad);
+    const hi = wvPol(p, main.ch)!=='Low';
+    const c1Up=56, c1Dn=92, cNUp=124, cNDn=160;
+    let s=`<svg class="wv-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+    s+=`<text x="${pad}" y="20" class="wv-lbl dim">Dead-time zoom — CH${main.ch} OFF, then CH${main.ch}N ON after dead-time (both low = dead-time)</text>`;
+    s+=`<line x1="${X(fallT)}" y1="30" x2="${X(fallT)}" y2="${cNDn}" stroke="var(--green)" stroke-width="1" stroke-dasharray="5 4" opacity="0.7"/>`;
+    s+=`<line x1="${X(riseN)}" y1="30" x2="${X(riseN)}" y2="${cNDn}" stroke="var(--magenta)" stroke-width="1" stroke-dasharray="5 4" opacity="0.7"/>`;
+    const d1 = hi
+      ? `M ${X(t0)} ${c1Dn} L ${X(fallT)} ${c1Dn} L ${X(fallT)} ${c1Up} L ${X(t1)} ${c1Up}`
+      : `M ${X(t0)} ${c1Up} L ${X(fallT)} ${c1Up} L ${X(fallT)} ${c1Dn} L ${X(t1)} ${c1Dn}`;
+    s+=`<path d="${d1}" fill="none" stroke="var(--green)" stroke-width="3"/>`;
+    s+=`<text x="${pad}" y="${c1Up-6}" class="wv-lbl">CH${main.ch}</text>`;
+    const dN = hi
+      ? `M ${X(t0)} ${cNDn} L ${X(riseN)} ${cNDn} L ${X(riseN)} ${cNUp} L ${X(t1)} ${cNUp}`
+      : `M ${X(t0)} ${cNUp} L ${X(riseN)} ${cNUp} L ${X(riseN)} ${cNDn} L ${X(t1)} ${cNDn}`;
+    s+=`<path d="${dN}" fill="none" stroke="var(--magenta)" stroke-width="3"/>`;
+    s+=`<text x="${pad}" y="${cNUp-6}" class="wv-lbl mag">CH${main.ch}N</text>`;
+    const gx0=X(fallT), gx1=X(riseN);
+    const gapY=Math.min(c1Dn,cNDn), gapH=Math.max(c1Up,cNUp)-Math.min(c1Dn,cNDn);
+    s+=`<rect x="${gx0}" y="${gapY}" width="${Math.max(1,gx1-gx0)}" height="${gapH}" fill="var(--amber)" opacity="0.20"/>`;
+    s+=`<line x1="${gx0}" y1="${gapY}" x2="${gx1}" y2="${gapY}" stroke="var(--amber)" stroke-width="2"/>`;
+    const ay=gapY-16;
+    s+=`<line x1="${gx0}" y1="${ay}" x2="${gx1}" y2="${ay}" stroke="var(--amber)" stroke-width="1.8"/>`;
+    s+=`<path d="M ${gx0} ${ay} l 6 -4 l 0 8 z" fill="var(--amber)"/>`;
+    s+=`<path d="M ${gx1} ${ay} l -6 -4 l 0 8 z" fill="var(--amber)"/>`;
+    s+=`<text x="${(gx0+gx1)/2}" y="${ay-6}" class="wv-lbl amber" text-anchor="middle">DT = ${wvFmtT(DT)}</text>`;
+    s+=`<text x="${X(fallT)}" y="${H-10}" class="wv-lbl green" text-anchor="middle">CH${main.ch} ↓ ${wvFmtT(fallT)}</text>`;
+    s+=`<text x="${X(riseN)}" y="${H-10}" class="wv-lbl mag" text-anchor="middle">CH${main.ch}N ↑ ${wvFmtT(riseN)}</text>`;
+    s+=`<text x="${W-pad}" y="20" class="wv-lbl dim" text-anchor="end">tDTS = ${wvFmtT(1/(clk*1e6))} · DTG = ${wvDtg(k)}</text>`;
+    s+=`</svg>`;
+    return s;
+  }
+
+  /* ---------- HTML for the timer card ---------- */
+  function wvHtml(k){
+    if(!periphEnabled(k)) return '';
+    const chs = wvTimerChannels(k);
+    const p = periphParams(k);
+    const clk = wvTimerClkMHz(k)||32;
+    const adv = wvHasComp(k);
+    const mode = p.mode||'PWM Generation';
+    const psc = Math.max(0,+p.psc||0), arr=Math.max(0,+p.arr||999);
+    const tickS=(psc+1)/(clk*1e6), Tp=tickS*(arr+1);
+    const hasN = chs.some(e=>e.n);
+    const hasChs = chs.length>0;
+    const compRow = adv && (p.comp || hasN) ? `
+      <div class="wv-dt" id="wv-${k}-dtbox">
+        <h5>⚡ Complementary &amp; Dead-time <span class="help" tabindex="0" data-tip="Complementary &amp; dead-time (advanced timers only) — enables the inverted outputs CHxN and inserts a delay so both switches are never on at the same time (dead-time). Set the gap with the slider, as time in nanoseconds (Time) or directly as the DTG register value (0–255) — the two boxes are synced both ways. The zoomed view shows the both-low gap at the switching edge. The DTG max range scales with the timer clock (tDTS).">?</span></h5>
+        <div class="row">
+          <label class="check" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;min-width:0">
+            <input type="checkbox" id="wv-${k}-comp" ${p.comp?'checked':''} data-wv="comp" data-k="${k}"> Enable complementary outputs
+          </label>
+          <span style="font-size:11px;color:var(--text-dim)">tDTS = <b id="wv-${k}-tDTS" style="color:var(--cyan)">${wvFmtT(1/(clk*1e6))}</b></span>
+        </div>
+        <div class="row">
+          <label>Dead-time (ns)</label>
+          <input type="range" id="wv-${k}-dtns" data-wv="dtns" data-k="${k}" min="0" max="${Math.round(255/(clk*1e6)*1e9)}" value="${+p.dtns||0}" style="flex:1;min-width:140px;accent-color:var(--amber)">
+        </div>
+        <div class="row">
+          <label>Time (ns)</label><input class="num" id="wv-${k}-dtnsNum" data-wv="dtnsnum" data-k="${k}" type="text" value="${+p.dtns||0}" style="width:110px">
+          <label>DTG</label><input class="num" id="wv-${k}-dtgNum" data-wv="dtgnum" data-k="${k}" type="text" value="${wvDtg(k)}" style="width:110px">
+          <span class="wv-chip">actual: <b id="wv-${k}-dtActual">${wvFmtT(wvDtg(k)/(clk*1e6))}</b></span>
+        </div>
+        <div class="wv-zoom" id="wv-${k}-zoom">${wvZoom(k)}</div>
+      </div>` : '';
+
+    const chanRows = chs.map(ent=>{
+      const pin = detectPeripherals()[k].find(x=>{ const c=timChannel(x.fn); return c && c.ch===ent.ch && !!c.n===!!ent.n; });
+      const pulse = wvPulse(p, ent.ch);
+      const duty = 100*pulse/(arr+1);
+      return `<div class="wv-chan">
+        <span class="cn">CH${ent.ch}${ent.n?'N':''}</span>
+        <span class="cp">${pin?pin.pin:''}</span>
+        <input type="range" data-wv="ch" data-k="${k}" data-ch="${ent.ch}" data-n="${ent.n?1:0}" min="0" max="${arr}" value="${pulse}" style="flex:1;min-width:110px;max-width:190px;accent-color:var(--amber)">
+        <input class="num" data-wv="chnum" data-k="${k}" data-ch="${ent.ch}" type="text" value="${pulse}">
+        <button class="pol ${wvPol(p,ent.ch)!=='Low'?'on':''}" data-wv="pol" data-k="${k}" data-ch="${ent.ch}">${wvPol(p,ent.ch)}</button>
+        <span class="duty" id="wv-${k}-ch${ent.ch}${ent.n?'N':''}-duty">${mode==='PWM Generation' && !ent.n ? 'duty '+duty.toFixed(1)+'%' : ''}</span>
+      </div>`;
+    }).join('');
+
+    return `<div class="wv">
+      <div class="wv-head">
+        <span class="wv-title">◣ Output signals &amp; timing — ${mode} <span class="help" tabindex="0" data-tip="Timer Waveform Designer — live, time-based preview of the output signal of every channel pin assigned to this timer. Use the PSC / ARR sliders (or type into the boxes), and set the Frequency / Period by typing e.g. 20k or 100us and pressing Enter — PSC and ARR are computed automatically. Each channel row has its own Pulse slider and High/Low polarity button. The diagram follows the selected timer mode (PWM, Output Compare, Input Capture, Encoder).">?</span></span>
+        <div class="wv-chips">
+          <span class="wv-chip">Timer clock: <b>${clk.toFixed(0)} MHz</b></span>
+          <span class="wv-chip">1 tick = <b>${wvFmtT(tickS)}</b></span>
+          <span class="wv-chip">Freq: <input class="num" id="wv-${k}-freq" data-wv="freq" data-k="${k}" type="text" value="${wvFmtF(1/Tp)}" title="Shows current frequency; type e.g. 1kHz / 20k / 0.5M and press Enter to auto-set PSC+ARR"></span>
+          <span class="wv-chip">Period: <input class="num" id="wv-${k}-per" data-wv="per" data-k="${k}" type="text" value="${wvFmtT(Tp)}" title="Shows current period; type e.g. 1ms / 100us / 20ns and press Enter to auto-set PSC+ARR"></span>
+        </div>
+      </div>
+      <div class="wv-controls">
+        <div class="ctl2"><label>PSC</label><input type="range" id="wv-${k}-psc" data-wv="psc" data-k="${k}" min="0" max="65535" value="${psc}"><input class="num" id="wv-${k}-pscnum" data-wv="pscnum" data-k="${k}" type="text" value="${psc}"></div>
+        <div class="ctl2"><label>ARR</label><input type="range" id="wv-${k}-arr" data-wv="arr" data-k="${k}" min="0" max="65535" value="${arr}"><input class="num" id="wv-${k}-arrnum" data-wv="arrnum" data-k="${k}" type="text" value="${arr}"></div>
+      </div>
+      ${hasChs ? wvSvg(k) : `<div class="wv-nopins">⚠ No channel pins assigned yet — press <b>Mark Pins</b> on this card, then click a channel pin (e.g. <b>CH1</b>) on the package view. The live waveform preview will appear here, and you can already use the <b>PSC / ARR</b> sliders and the <b>frequency / period</b> boxes above.</div>`}
+      <div class="wv-legend">
+        <span><span class="sw2" style="background:var(--green)"></span>CHx output</span>
+        <span><span class="sw2" style="background:var(--magenta)"></span>complementary (CHxN)</span>
+        <span><span class="sw2" style="background:var(--amber)"></span>pulse / dead-time marker</span>
+        <span><span class="sw2" style="background:var(--blue)"></span>input</span>
+      </div>
+      ${chanRows}
+      ${compRow}
+    </div>`;
+  }
+
+  /* ---------- live redraw (no full re-render) ---------- */
+  function wvDraw(k){
+    const svg = document.getElementById('wv-svg-'+k);
+    const p = periphParams(k);
+    const clk = wvTimerClkMHz(k)||32;
+    const psc = Math.max(0,+p.psc||0), arr=Math.max(0,+p.arr||999);
+    const tickS=(psc+1)/(clk*1e6), Tp=tickS*(arr+1);
+    const set=(id,v)=>{const el=document.getElementById(id); if(el) el.value=v;};
+    const syncPAR=()=>{
+      set('wv-'+k+'-psc', psc); set('wv-'+k+'-arr', arr);
+      set('wv-'+k+'-pscnum', psc); set('wv-'+k+'-arrnum', arr);
+      const tfP=document.querySelector('#pc-'+k+' input[data-p="'+k+'.psc"]'); if(tfP) tfP.value=psc;
+      const tfA=document.querySelector('#pc-'+k+' input[data-p="'+k+'.arr"]'); if(tfA) tfA.value=arr;
+      set('wv-'+k+'-freq', wvFmtF(1/Tp)); set('wv-'+k+'-per', wvFmtT(Tp));
+    };
+    if(!svg){ syncPAR(); return; }
+    svg.outerHTML = wvSvg(k);
+    const setT=(id,v)=>{const el=document.getElementById(id); if(el) el.textContent=v;};
+    syncPAR();
+    set('wv-'+k+'-per', wvFmtT(Tp));
+    setT('wv-'+k+'-tDTS', wvFmtT(1/(clk*1e6)));
+    setT('wv-'+k+'-dtActual', wvFmtT(wvDtg(k)/(clk*1e6)));
+    set('wv-'+k+'-dtns', Math.min(+p.dtns||0, Math.round(255/(clk*1e6)*1e9)));
+    set('wv-'+k+'-dtnsNum', +p.dtns||0);
+    set('wv-'+k+'-dtgNum', wvDtg(k));
+    const zoom = document.getElementById('wv-'+k+'-zoom');
+    if(zoom) zoom.innerHTML = wvZoom(k);
+    wvTimerChannels(k).forEach(ent=>{
+      const pulse = wvPulse(p, ent.ch);
+      set('wv-'+k+'-ch'+ent.ch+(ent.n?'N':'')+'-r', pulse);
+      const num = document.getElementById('wv-'+k+'-ch'+ent.ch+(ent.n?'N':'')+'-num');
+      if(num) num.value = pulse;
+      const du = document.getElementById('wv-'+k+'-ch'+ent.ch+(ent.n?'N':'')+'-duty');
+      if(du && !ent.n && (p.mode||'PWM Generation')==='PWM Generation') du.textContent = 'duty '+(100*pulse/(arr+1)).toFixed(1)+'%';
+    });
+  }
+
+  /* ---------- hook cardHtml ---------- */
+  const _origCardHtml = cardHtml;
+  cardHtml = function(name){
+    const h = _origCardHtml(name);
+    if(/^TIM\d+$/.test(name) && periphEnabled(name)){
+      const wv = wvHtml(name);
+      if(wv) return h.replace(/<\/div>\s*$/, wv + '</div>');
+    }
+    return h;
+  };
+
+  /* ---------- apply target ---------- */
+  function wvApplyTarget(k, isFreq, raw){
+    const p = periphParams(k);
+    const clk = wvTimerClkMHz(k)||32;
+    const val = wvParseUnit(raw);
+    if(val===null){ toast('Invalid value — examples: 1kHz, 20k, 0.5M, 100Hz, 1ms, 100us, 20ns','err'); return; }
+    const r = wvComputePscArr(clk, val, isFreq);
+    if(!r){ toast('Target out of achievable range for this timer clock','err'); return; }
+    p.psc = r.psc; p.arr = r.arr;
+    renderPeriphPanel();
+  }
+
+  /* ---------- delegated events ---------- */
+  document.addEventListener('input', e=>{
+    const t = e.target;
+    const dw = t.dataset ? t.dataset.wv : null;
+    if(dw){
+      const k = t.dataset.k, p = periphParams(k);
+      if(dw==='psc'){ p.psc = +t.value; wvDraw(k); }
+      else if(dw==='arr'){ p.arr = +t.value; wvDraw(k); }
+      else if(dw==='ch'){ p['pulse'+t.dataset.ch] = +t.value; wvDraw(k); }
+      else if(dw==='dtns'){ p.dtns = +t.value; wvDraw(k); }
+    } else if(t.matches && t.matches('[data-p]')){
+      const k = t.dataset.p.split('.')[0];
+      if(/^TIM\d+$/.test(k)) wvDraw(k);
+    }
+  });
+  document.addEventListener('change', e=>{
+    const t = e.target;
+    const dw = t.dataset ? t.dataset.wv : null;
+    if(dw){
+      const k = t.dataset.k, p = periphParams(k);
+      const clk = wvTimerClkMHz(k)||32;
+      if(dw==='psc'||dw==='pscnum'){ p.psc = Math.min(65535, Math.max(0, +t.value||0)); renderPeriphPanel(); }
+      else if(dw==='arr'||dw==='arrnum'){ p.arr = Math.min(65535, Math.max(0, +t.value||0)); renderPeriphPanel(); }
+      else if(dw==='ch'){ p['pulse'+t.dataset.ch] = Math.min(+p.arr||999, Math.max(0, +t.value||0)); renderPeriphPanel(); }
+      else if(dw==='chnum'){ p['pulse'+t.dataset.ch] = Math.min(+p.arr||999, Math.max(0, +t.value||0)); renderPeriphPanel(); }
+      else if(dw==='dtns'){ p.dtns = Math.min(Math.round(255/(clk*1e6)*1e9), Math.max(0, +t.value||0)); renderPeriphPanel(); }
+      else if(dw==='dtnsnum'){ p.dtns = Math.min(Math.round(255/(clk*1e6)*1e9), Math.max(0, +t.value||0)); renderPeriphPanel(); }
+      else if(dw==='dtgnum'){ const v = Math.min(255, Math.max(0, +t.value||0)); p.dtns = Math.round(v/(clk*1e6)*1e9); renderPeriphPanel(); }
+      else if(dw==='freq'){ wvApplyTarget(k, true, t.value); }
+      else if(dw==='per'){ wvApplyTarget(k, false, t.value); }
+      else if(dw==='comp'){ p.comp = t.checked; renderPeriphPanel(); }
+    } else if(t.matches && t.matches('[data-p]')){
+      const k = t.dataset.p.split('.')[0];
+      if(/^TIM\d+$/.test(k)) renderPeriphPanel();   /* sync wave after text edits */
+    }
+  });
+  document.addEventListener('click', e=>{
+    const t = e.target.closest ? e.target.closest('[data-wv]') : null;
+    if(!t) return;
+    const k = t.dataset.k, p = periphParams(k);
+    if(t.dataset.wv==='pol'){
+      p['chpol'+t.dataset.ch] = wvPol(p, t.dataset.ch)==='Low' ? 'High' : 'Low';
+      renderPeriphPanel();
+    }
+  });
+})();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2daedd19cdbd36d',t:'MTc4NzE2MTA3NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
