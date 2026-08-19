@@ -1,0 +1,22 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+*.code-workspace
+
+# Logs / temp
+*.log
+*.tmp
+npm-debug.log*
+
+# Generated build artifacts (if you ever split the app into a build)
+dist/
+build/
+out/
+node_modules/
+
+# Keep the app itself — it's a single self-contained HTML file
+!OpenMCU_Cube*.html
