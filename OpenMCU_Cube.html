@@ -5233,11 +5233,56 @@ setTimeout(()=>{
     return isNaN(v)?0:v;
   };
   window.wvPol = function(p, ch){ return (p && p['chpol'+ch]!==undefined && p['chpol'+ch]!=='') ? p['chpol'+ch] : ((p && p.chpol)||'High'); };
-  window.wvDtg = function(k){
+  /* DTG register -> time (STM32/HK32 non-linear 4-segment mapping).
+     DTG[7:5]=0xx : DT = DTG*tDTS            (0..127)
+     DTG[7:5]=10x : DT = (64+DTG[5:0])*2*tDTS (128..191)
+     DTG[7:5]=110 : DT = (32+DTG[4:0])*8*tDTS (192..223)
+     DTG[7:5]=111 : DT = (32+DTG[4:0])*16*tDTS (224..255)  -> max 1008*tDTS */
+  window.wvDtgToNs = function(dtg, tDTS){
+    const g = Math.max(0, Math.min(255, Math.round(dtg)||0));
+    if(g < 128) return g * tDTS;
+    if(g < 192) return (64 + (g & 0x3F)) * 2 * tDTS;
+    if(g < 224) return (32 + (g & 0x1F)) * 8 * tDTS;
+    return (32 + (g & 0x1F)) * 16 * tDTS;
+  };
+  window.wvNsToDtg = function(ns, tDTS){
+    const target = ns*1e-9;
+    let best=0, bestErr=Infinity;
+    for(let g=0; g<=255; g++){
+      const t = wvDtgToNs(g, tDTS);
+      const err = Math.abs(t-target);
+      if(err < bestErr){ bestErr=err; best=g; }
+    }
+    return best;
+  };
+  window.wvDtTick = function(k){
     const p = periphParams(k);
     const clk = wvTimerClkMHz(k)||32;
-    const tDTS = 1/(clk*1e6);
-    return Math.max(0, Math.min(255, Math.round((+p.dtns||0)*1e-9/tDTS)));
+    const psc = Math.max(0,+p.psc||0);
+    return (psc+1)/(clk*1e6);                 /* tDTS = timer tick after prescaler */
+  };
+  /* Dead-time limited by the signal itself: DT must leave room for the
+     complementary output, i.e. DT < (period - active-time)/2. The slider is
+     linear in time (ns) and its max follows the current PSC/ARR/Pulse. */
+  window.wvMaxDtSignal = function(k){
+    const p = periphParams(k);
+    const clk = wvTimerClkMHz(k)||32;
+    const psc = Math.max(0,+p.psc||0), arr = Math.max(0,+p.arr||999);
+    const tickS = (psc+1)/(clk*1e6);
+    const Tp = tickS*(arr+1);
+    const main = wvTimerChannels(k).find(e=>!e.n);
+    const pulse = main ? wvPulse(p, main.ch) : Math.round((arr+1)*0.5)-1;
+    const hiT = tickS*Math.max(0, Math.min(arr, pulse));
+    return Math.max(0, (Tp - hiT)/2);        /* seconds */
+  };
+  window.wvMaxDTns = function(k){
+    return Math.round(Math.min(wvDtgToNs(255, wvDtTick(k)), wvMaxDtSignal(k))*1e9);
+  };
+  window.wvDtActual = function(k){
+    return wvDtgToNs(wvDtg(k), wvDtTick(k));
+  };
+  window.wvDtg = function(k){
+    return wvNsToDtg(+periphParams(k).dtns||0, wvDtTick(k));
   };
 
   /* ---------- helpers ---------- */
@@ -5318,10 +5363,12 @@ setTimeout(()=>{
     const Tp = tickS*(arr+1);
     const mode = p.mode||'PWM Generation';
     const comp = !!p.comp;
-    const N = 3, W=1000, H0=64, Hch=78, padL=10, padR=12;
+    const N = 3, W=1000, H0=64, Hch=100, padL=10, padR=12;
     const xmax = N*Tp;
     const X = t => padL + (t/xmax)*(W-padL-padR);
-    const rows = Math.max(1, chs.length);
+    const groups = {};
+    chs.forEach(ent=>{ (groups[ent.ch]=groups[ent.ch]||[]).push(ent); });
+    const rows = Math.max(1, Object.keys(groups).length);
     const H = H0 + Hch*rows + 44;
     const esc = s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     let s = `<svg class="wv-svg" id="wv-svg-${k}" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
@@ -5393,77 +5440,119 @@ setTimeout(()=>{
         s+=`<text x="${X(Tp*1.5)}" y="${y0+Hch-8}" class="wv-lbl blue" text-anchor="middle">input — capture on rising edge (captured CNT shown)</text>`;
       }
     } else {
-      /* PWM / Output Compare channels + complementaries */
-      chs.forEach(ent=>{
-        const y0=rowY();
-        const pin = detectPeripherals()[k].find(x=>{ const c=timChannel(x.fn); return c && c.ch===ent.ch && !!c.n===!!ent.n; });
-        const pulse = wvPulse(p, ent.ch);
-        const hi = mode!=='PWM Generation' ? true : (wvPol(p,ent.ch)!=='Low');
-        const up=y0+10, dn=y0+Hch-24;
-        s+=`<line x1="${padL}" y1="${y0+12}" x2="${W-padR}" y2="${y0+12}" stroke="var(--border-soft)" stroke-width="0.6"/>`;
-        let d='';
-        if(mode==='PWM Generation'){
-          const hiT = tickS*pulse;
-          if(ent.n){
-            /* complementary: inverted with dead-time shift */
-            const DT = comp ? Math.min((+p.dtns||0)*1e-9, tickS*255) : 0;
-            const nsamp=240;
-            for(let i=0;i<=nsamp;i++){
-              const t=(xmax*i)/nsamp;
-              const ts = t-DT;
-              let on=false;
-              if(ts>=0){
-                const tp=((ts%Tp)+Tp)%Tp;
-                on = hi ? (tp<hiT) : (tp>=hiT);
-              }
-              const lvl = on? dn : up;
-              const x=X(t);
-              d+=(i===0?`M ${x} ${lvl}`:` L ${x} ${lvl}`);
+      /* PWM / Output Compare: CHx and CHxN share ONE row — CHxN is the exact inverse */
+      Object.keys(groups).forEach(cn=>{
+        const ents = groups[cn];
+        const main = ents.find(e=>!e.n) || null;
+        const comp = ents.find(e=>e.n) || null;
+        const y0 = rowY();
+        const pinOf = (wantN)=>{
+          const e = detectPeripherals()[k].find(x=>{ const c=timChannel(x.fn); return c && c.ch===cn && !!c.n===!!wantN; });
+          return e ? e.pin : '';
+        };
+        const pinM = main ? pinOf(false) : '';
+        const pinN = comp ? pinOf(true) : '';
+        const pulse = wvPulse(p, cn);
+        const hi = mode!=='PWM Generation' ? true : (wvPol(p,cn)!=='Low');
+        const hiT = tickS*pulse;
+        const DT = (comp && p.comp) ? Math.min((+p.dtns||0)*1e-9, wvMaxDtSignal(k)) : 0;
+        /* channel label line — above the waves so it never overlaps them */
+        let lbl = `<text x="2" y="${y0+16}" class="wv-lbl">CH${cn} <tspan class="wv-lbl dim">${pinM}</tspan>`;
+        if(comp) lbl += ` <tspan class="wv-lbl mag">· CH${cn}N <tspan class="wv-lbl dim">${pinN}</tspan></tspan>`;
+        if(mode==='PWM Generation' && comp && p.comp) lbl += ` <tspan class="wv-lbl amber" style="font-size:10px">· DT ${wvFmtT(DT)}</tspan>`;
+        lbl += `</text>`;
+        s+=lbl;
+
+        if(main && comp){
+          /* CH1 drawn ABOVE zero, CH1N mirrored BELOW zero — equal amplitude.
+             CH1N is the exact inverse of CHx with dead-time on BOTH edges:
+             during the dead-time both signals sit at the zero line. */
+          const z  = y0+56;                   /* zero / both-off level */
+          const band = 20;
+          const upM = z - band;               /* CH1 ON level (above zero) */
+          const dnN = z + band;               /* CH1N ON level (below zero) */
+          s+=`<line x1="${padL}" y1="${z}" x2="${W-padR}" y2="${z}" stroke="var(--border-soft)" stroke-width="0.6" stroke-dasharray="5 4"/>`;
+          let d1='', dN='';
+          const nOnOk = hi ? (hiT+DT < Tp-DT) : (DT < hiT-DT);   /* dead-time fits in the off window */
+          for(let pn=0;pn<N;pn++){
+            const t0=pn*Tp;
+            /* CH1: ON during its active window (per polarity) */
+            if(hi){
+              d1+=`M ${X(t0)} ${upM} L ${X(t0+hiT)} ${upM} L ${X(t0+hiT)} ${z} L ${X(t0+Tp)} ${z} L ${X(t0+Tp)} ${upM} `;
+            } else {
+              d1+=`M ${X(t0)} ${z} L ${X(t0+hiT)} ${z} L ${X(t0+hiT)} ${upM} L ${X(t0+Tp)} ${upM} L ${X(t0+Tp)} ${z} `;
             }
-            s+=`<path d="${d}" fill="none" stroke="var(--magenta)" stroke-width="2"/>`;
-            /* DT gap marker at the main channel falling edge */
-            const fallT=hiT;
-            const g0=X(fallT), g1=Math.max(X(fallT+DT), g0+4);
-            s+=`<rect x="${g0}" y="${Math.min(up,dn)-5}" width="${g1-g0}" height="7" fill="var(--amber)" opacity="0.45"/>`;
-            s+=`<text x="${(g0+g1)/2}" y="${Math.min(up,dn)-10}" class="wv-lbl amber" text-anchor="middle" style="font-size:10.5px">DT ${wvFmtT(DT)}</text>`;
-          } else {
+            /* CH1N: ON only while CH1 is OFF, delayed by DT on both edges */
+            if(hi){
+              if(nOnOk) dN+=`M ${X(t0)} ${dnN} L ${X(t0+hiT+DT)} ${dnN} L ${X(t0+hiT+DT)} ${z} L ${X(t0+Tp-DT)} ${z} L ${X(t0+Tp-DT)} ${dnN} L ${X(t0+Tp)} ${dnN} `;
+              else      dN+=`M ${X(t0)} ${z} L ${X(t0+Tp)} ${z} `;
+            } else {
+              if(nOnOk) dN+=`M ${X(t0)} ${z} L ${X(t0+DT)} ${z} L ${X(t0+DT)} ${dnN} L ${X(t0+hiT-DT)} ${dnN} L ${X(t0+hiT-DT)} ${z} L ${X(t0+Tp)} ${z} `;
+              else      dN+=`M ${X(t0)} ${z} L ${X(t0+Tp)} ${z} `;
+            }
+            /* dead-time gap markers (both at zero) on BOTH edges of every period */
+            if(hi){
+              const a=X(t0+hiT),      b=Math.max(X(t0+hiT+DT), a+4);
+              const c=X(t0+Tp-DT),    d2=Math.max(X(t0+Tp), c+4);
+              s+=`<rect x="${a}" y="${z-3}" width="${b-a}" height="6" fill="var(--amber)" opacity="0.5"/>`;
+              s+=`<rect x="${c}" y="${z-3}" width="${d2-c}" height="6" fill="var(--amber)" opacity="0.5"/>`;
+            } else {
+              const a=X(t0),          b=Math.max(X(t0+DT), a+4);
+              const c=X(t0+hiT-DT),   d2=Math.max(X(t0+hiT), c+4);
+              s+=`<rect x="${a}" y="${z-3}" width="${b-a}" height="6" fill="var(--amber)" opacity="0.5"/>`;
+              s+=`<rect x="${c}" y="${z-3}" width="${d2-c}" height="6" fill="var(--amber)" opacity="0.5"/>`;
+            }
+          }
+          s+=`<path d="${d1}" fill="none" stroke="var(--green)" stroke-width="2"/>`;
+          s+=`<path d="${dN}" fill="none" stroke="var(--magenta)" stroke-width="2"/>`;
+          const px=X(hiT);
+          s+=`<line x1="${px}" y1="${y0+24}" x2="${px}" y2="${z}" stroke="var(--amber)" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+          s+=`<text x="${px+4}" y="${y0+27}" class="wv-lbl amber" style="font-size:11px">pulse ${pulse}</text>`;
+          const duty=100*pulse/(arr+1);
+          s+=`<text x="${X(Tp*0.5)}" y="${y0+27}" class="wv-lbl" text-anchor="middle" style="font-size:11px" opacity="0.9">duty ${duty.toFixed(1)}%</text>`;
+          /* level labels around the zero line */
+          s+=`<text x="3" y="${upM-3}" class="wv-lbl dim" style="font-size:9px">H</text>`;
+          s+=`<text x="3" y="${z+9}"  class="wv-lbl dim" style="font-size:9px">0</text>`;
+          s+=`<text x="3" y="${z-3}"  class="wv-lbl mag" style="font-size:9px">0</text>`;
+          s+=`<text x="3" y="${dnN+9}" class="wv-lbl mag" style="font-size:9px">H</text>`;
+        } else {
+          /* single channel (main or complement only) — centered wave */
+          const up=y0+38, dn=y0+86;
+          const isN = !!comp;
+          const col = isN ? 'var(--magenta)' : 'var(--green)';
+          const hiEff = isN ? !hi : hi;      /* if only CHxN exists, draw its inverse */
+          let d='';
+          if(mode==='PWM Generation'){
             for(let pn=0;pn<N;pn++){
               const t0=pn*Tp;
-              if(hi){
-                d+=`M ${X(t0)} ${dn} L ${X(t0+hiT)} ${dn} L ${X(t0+hiT)} ${up} L ${X(t0+Tp)} ${up} L ${X(t0+Tp)} ${dn} `;
-              } else {
-                d+=`M ${X(t0)} ${up} L ${X(t0+hiT)} ${up} L ${X(t0+hiT)} ${dn} L ${X(t0+Tp)} ${dn} L ${X(t0+Tp)} ${up} `;
-              }
+              if(hiEff) d+=`M ${X(t0)} ${dn} L ${X(t0+hiT)} ${dn} L ${X(t0+hiT)} ${up} L ${X(t0+Tp)} ${up} L ${X(t0+Tp)} ${dn} `;
+              else      d+=`M ${X(t0)} ${up} L ${X(t0+hiT)} ${up} L ${X(t0+hiT)} ${dn} L ${X(t0+Tp)} ${dn} L ${X(t0+Tp)} ${up} `;
             }
-            s+=`<path d="${d}" fill="none" stroke="var(--green)" stroke-width="2"/>`;
+            s+=`<path d="${d}" fill="none" stroke="${col}" stroke-width="2"/>`;
+            const px=X(hiT);
+            s+=`<line x1="${px}" y1="${y0+24}" x2="${px}" y2="${dn}" stroke="var(--amber)" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+            s+=`<text x="${px+4}" y="${y0+27}" class="wv-lbl amber" style="font-size:11px">pulse ${pulse}</text>`;
+            if(!isN){
+              const duty=100*pulse/(arr+1);
+              s+=`<text x="${X(Tp*0.5)}" y="${y0+27}" class="wv-lbl" text-anchor="middle" style="font-size:11px" opacity="0.9">duty ${duty.toFixed(1)}%</text>`;
+            }
+          } else {
+            const matchT=tickS*pulse; let level=0;
+            for(let pn=0;pn<N;pn++){
+              const t0=pn*Tp, m=t0+matchT;
+              const from=level?up:dn;
+              d+=`M ${X(t0)} ${from} L ${X(m)} ${from} `;
+              level=level?0:1;
+              d+=`L ${X(m)} ${level?up:dn} L ${X(t0+Tp)} ${level?up:dn} `;
+            }
+            s+=`<path d="${d}" fill="none" stroke="${col}" stroke-width="2"/>`;
             const px=X(tickS*pulse);
-            s+=`<line x1="${px}" y1="${y0}" x2="${px}" y2="${y0+Hch-12}" stroke="var(--amber)" stroke-width="1.3" stroke-dasharray="4 3"/>`;
-            s+=`<text x="${px+4}" y="${y0+12}" class="wv-lbl amber">pulse ${pulse}</text>`;
+            s+=`<circle cx="${px}" cy="${up}" r="3" fill="var(--amber)"/>`;
+            s+=`<text x="${px+7}" y="${y0+28}" class="wv-lbl amber" style="font-size:11px">match @ ${pulse}</text>`;
           }
-        } else {
-          /* Output Compare toggle */
-          const matchT = tickS*pulse;
-          let level = 0;
-          for(let pn=0;pn<N;pn++){
-            const t0=pn*Tp, m=t0+matchT;
-            const from = level? up:dn;
-            d+=`M ${X(t0)} ${from} L ${X(m)} ${from} `;
-            level = level?0:1;
-            d+=`L ${X(m)} ${level?up:dn} L ${X(t0+Tp)} ${level?up:dn} `;
-          }
-          s+=`<path d="${d}" fill="none" stroke="var(--green)" stroke-width="2"/>`;
-          const px=X(tickS*pulse);
-          s+=`<circle cx="${px}" cy="${up}" r="3.2" fill="var(--amber)"/>`;
-          s+=`<text x="${px+7}" y="${y0+12}" class="wv-lbl amber">match @ ${pulse}</text>`;
+          s+=`<text x="3" y="${up+4}" class="wv-lbl dim" style="font-size:9px">H</text>`;
+          s+=`<text x="3" y="${dn+9}" class="wv-lbl dim" style="font-size:9px">L</text>`;
         }
-        s+=`<text x="${padL+2}" y="${up+4}" class="wv-lbl dim" style="font-size:11px">H</text>`;
-        s+=`<text x="${padL+2}" y="${dn+8}" class="wv-lbl dim" style="font-size:11px">L</text>`;
-        if(!ent.n && mode==='PWM Generation'){
-          const duty = 100*pulse/(arr+1);
-          s+=`<text x="${X(Tp*0.5)}" y="${up+4}" class="wv-lbl" text-anchor="middle" style="font-size:11.5px" opacity="0.9">duty ${duty.toFixed(1)}%</text>`;
-        }
-        const color = ent.n ? 'class="wv-lbl mag"' : 'class="wv-lbl"';
-        s+=`<text x="2" y="${y0+14}" ${color}>CH${ent.ch}${ent.n?'N':''} · <tspan class="wv-lbl dim">${pin?pin.pin:''}</tspan></text>`;
       });
     }
     s+=`</svg>`;
@@ -5480,43 +5569,46 @@ setTimeout(()=>{
     const clk = wvTimerClkMHz(k)||32;
     const psc = Math.max(0,+p.psc||0), arr=Math.max(0,+p.arr||999);
     const tickS = (psc+1)/(clk*1e6);
+    const Tp = tickS*(arr+1);
     const pulse = wvPulse(p, main.ch);
-    const DT = Math.min((+p.dtns||0)*1e-9, tickS*255);
-    const fallT = tickS*pulse;
-    const riseN = fallT + DT;
+    const DT = Math.min((+p.dtns||0)*1e-9, wvMaxDtSignal(k));
+    const hi = wvPol(p, main.ch)!=='Low';
+    /* CH1 falling edge (turns OFF) — for Low polarity it is the period boundary */
+    const fallT = hi ? tickS*pulse : 0;
+    const riseN = fallT + DT;                 /* CH1N rising edge */
     const W=640, H=180, pad=18;
-    const win = Math.max(2e-6, tickS*(arr+1)*0.02, DT*3);
+    const win = Math.max(2e-6, Tp*0.02, DT*3);
     const center = fallT + DT/2;
     const t0 = center - win/2, t1 = center + win/2;
     const X = t => pad + ((t-t0)/(t1-t0))*(W-2*pad);
-    const hi = wvPol(p, main.ch)!=='Low';
-    const c1Up=56, c1Dn=92, cNUp=124, cNDn=160;
+    /* mirrored view: CH1 above zero, CH1N below zero, both at zero during DT */
+    const z=105, band=26;
+    const upM=z-band, dnN=z+band;
     let s=`<svg class="wv-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
-    s+=`<text x="${pad}" y="20" class="wv-lbl dim">Dead-time zoom — CH${main.ch} OFF, then CH${main.ch}N ON after dead-time (both low = dead-time)</text>`;
-    s+=`<line x1="${X(fallT)}" y1="30" x2="${X(fallT)}" y2="${cNDn}" stroke="var(--green)" stroke-width="1" stroke-dasharray="5 4" opacity="0.7"/>`;
-    s+=`<line x1="${X(riseN)}" y1="30" x2="${X(riseN)}" y2="${cNDn}" stroke="var(--magenta)" stroke-width="1" stroke-dasharray="5 4" opacity="0.7"/>`;
-    const d1 = hi
-      ? `M ${X(t0)} ${c1Dn} L ${X(fallT)} ${c1Dn} L ${X(fallT)} ${c1Up} L ${X(t1)} ${c1Up}`
-      : `M ${X(t0)} ${c1Up} L ${X(fallT)} ${c1Up} L ${X(fallT)} ${c1Dn} L ${X(t1)} ${c1Dn}`;
+    s+=`<text x="${pad}" y="20" class="wv-lbl dim">Dead-time zoom — CH${main.ch} OFF, then CH${main.ch}N ON after dead-time (both at 0)</text>`;
+    s+=`<text x="${W-pad}" y="20" class="wv-lbl dim" text-anchor="end">tDTS = ${wvFmtT(1/(clk*1e6))} · DTG = ${wvDtg(k)}</text>`;
+    /* zero line + edge guides */
+    s+=`<line x1="${pad}" y1="${z}" x2="${W-pad}" y2="${z}" stroke="var(--border-soft)" stroke-width="0.7" stroke-dasharray="5 4"/>`;
+    s+=`<line x1="${X(fallT)}" y1="30" x2="${X(fallT)}" y2="${dnN+6}" stroke="var(--green)" stroke-width="1" stroke-dasharray="5 4" opacity="0.7"/>`;
+    s+=`<line x1="${X(riseN)}" y1="30" x2="${X(riseN)}" y2="${dnN+6}" stroke="var(--magenta)" stroke-width="1" stroke-dasharray="5 4" opacity="0.7"/>`;
+    /* CH1: ON (above) until fallT, then OFF (zero) */
+    const d1 = `M ${X(t0)} ${upM} L ${X(fallT)} ${upM} L ${X(fallT)} ${z} L ${X(t1)} ${z}`;
     s+=`<path d="${d1}" fill="none" stroke="var(--green)" stroke-width="3"/>`;
-    s+=`<text x="${pad}" y="${c1Up-6}" class="wv-lbl">CH${main.ch}</text>`;
-    const dN = hi
-      ? `M ${X(t0)} ${cNDn} L ${X(riseN)} ${cNDn} L ${X(riseN)} ${cNUp} L ${X(t1)} ${cNUp}`
-      : `M ${X(t0)} ${cNUp} L ${X(riseN)} ${cNUp} L ${X(riseN)} ${cNDn} L ${X(t1)} ${cNDn}`;
+    s+=`<text x="${pad}" y="${upM-6}" class="wv-lbl">CH${main.ch}</text>`;
+    /* CH1N: OFF (zero) until riseN, then ON (below zero) */
+    const dN = `M ${X(t0)} ${z} L ${X(riseN)} ${z} L ${X(riseN)} ${dnN} L ${X(t1)} ${dnN}`;
     s+=`<path d="${dN}" fill="none" stroke="var(--magenta)" stroke-width="3"/>`;
-    s+=`<text x="${pad}" y="${cNUp-6}" class="wv-lbl mag">CH${main.ch}N</text>`;
+    s+=`<text x="${pad}" y="${dnN+10}" class="wv-lbl mag">CH${main.ch}N</text>`;
+    /* dead-time gap (both at zero) with double arrow + value */
     const gx0=X(fallT), gx1=X(riseN);
-    const gapY=Math.min(c1Dn,cNDn), gapH=Math.max(c1Up,cNUp)-Math.min(c1Dn,cNDn);
-    s+=`<rect x="${gx0}" y="${gapY}" width="${Math.max(1,gx1-gx0)}" height="${gapH}" fill="var(--amber)" opacity="0.20"/>`;
-    s+=`<line x1="${gx0}" y1="${gapY}" x2="${gx1}" y2="${gapY}" stroke="var(--amber)" stroke-width="2"/>`;
-    const ay=gapY-16;
+    s+=`<rect x="${gx0}" y="${z-3}" width="${Math.max(1,gx1-gx0)}" height="6" fill="var(--amber)" opacity="0.45"/>`;
+    const ay=z-14;
     s+=`<line x1="${gx0}" y1="${ay}" x2="${gx1}" y2="${ay}" stroke="var(--amber)" stroke-width="1.8"/>`;
     s+=`<path d="M ${gx0} ${ay} l 6 -4 l 0 8 z" fill="var(--amber)"/>`;
     s+=`<path d="M ${gx1} ${ay} l -6 -4 l 0 8 z" fill="var(--amber)"/>`;
     s+=`<text x="${(gx0+gx1)/2}" y="${ay-6}" class="wv-lbl amber" text-anchor="middle">DT = ${wvFmtT(DT)}</text>`;
-    s+=`<text x="${X(fallT)}" y="${H-10}" class="wv-lbl green" text-anchor="middle">CH${main.ch} ↓ ${wvFmtT(fallT)}</text>`;
+    s+=`<text x="${X(fallT)}" y="36" class="wv-lbl green" text-anchor="middle">CH${main.ch} ↓ ${wvFmtT(fallT)}</text>`;
     s+=`<text x="${X(riseN)}" y="${H-10}" class="wv-lbl mag" text-anchor="middle">CH${main.ch}N ↑ ${wvFmtT(riseN)}</text>`;
-    s+=`<text x="${W-pad}" y="20" class="wv-lbl dim" text-anchor="end">tDTS = ${wvFmtT(1/(clk*1e6))} · DTG = ${wvDtg(k)}</text>`;
     s+=`</svg>`;
     return s;
   }
@@ -5537,19 +5629,15 @@ setTimeout(()=>{
       <div class="wv-dt" id="wv-${k}-dtbox">
         <h5>⚡ Complementary &amp; Dead-time <span class="help" tabindex="0" data-tip="Complementary &amp; dead-time (advanced timers only) — enables the inverted outputs CHxN and inserts a delay so both switches are never on at the same time (dead-time). Set the gap with the slider, as time in nanoseconds (Time) or directly as the DTG register value (0–255) — the two boxes are synced both ways. The zoomed view shows the both-low gap at the switching edge. The DTG max range scales with the timer clock (tDTS).">?</span></h5>
         <div class="row">
-          <label class="check" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;min-width:0">
-            <input type="checkbox" id="wv-${k}-comp" ${p.comp?'checked':''} data-wv="comp" data-k="${k}"> Enable complementary outputs
+          <label class="check" style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;min-width:0;font-size:11px;white-space:nowrap">
+            <input type="checkbox" id="wv-${k}-comp" ${p.comp?'checked':''} data-wv="comp" data-k="${k}"> CHxN
           </label>
-          <span style="font-size:11px;color:var(--text-dim)">tDTS = <b id="wv-${k}-tDTS" style="color:var(--cyan)">${wvFmtT(1/(clk*1e6))}</b></span>
-        </div>
-        <div class="row">
-          <label>Dead-time (ns)</label>
-          <input type="range" id="wv-${k}-dtns" data-wv="dtns" data-k="${k}" min="0" max="${Math.round(255/(clk*1e6)*1e9)}" value="${+p.dtns||0}" style="flex:1;min-width:140px;accent-color:var(--amber)">
-        </div>
-        <div class="row">
-          <label>Time (ns)</label><input class="num" id="wv-${k}-dtnsNum" data-wv="dtnsnum" data-k="${k}" type="text" value="${+p.dtns||0}" style="width:110px">
-          <label>DTG</label><input class="num" id="wv-${k}-dtgNum" data-wv="dtgnum" data-k="${k}" type="text" value="${wvDtg(k)}" style="width:110px">
-          <span class="wv-chip">actual: <b id="wv-${k}-dtActual">${wvFmtT(wvDtg(k)/(clk*1e6))}</b></span>
+          <span style="font-size:10.5px;color:var(--text-dim);white-space:nowrap">tDTS = <b id="wv-${k}-tDTS" style="color:var(--cyan)">${wvFmtT(1/(clk*1e6))}</b></span>
+          <input type="range" id="wv-${k}-dtns" data-wv="dtns" data-k="${k}" min="0" max="${wvMaxDTns(k)}" value="${+p.dtns||0}" style="flex:1;min-width:110px;max-width:210px;accent-color:var(--amber)">
+          <span style="font-size:9.5px;color:var(--text-dim);white-space:nowrap">max <b id="wv-${k}-dtMax" style="color:var(--cyan)">${wvFmtT(wvMaxDTns(k)*1e-9)}</b> (by signal)</span>
+          <label>ns</label><input class="num" id="wv-${k}-dtnsNum" data-wv="dtnsnum" data-k="${k}" type="text" value="${+p.dtns||0}" style="width:58px">
+          <label>DTG</label><input class="num" id="wv-${k}-dtgNum" data-wv="dtgnum" data-k="${k}" type="text" value="${wvDtg(k)}" style="width:48px">
+          <span class="wv-chip" style="white-space:nowrap">= <b id="wv-${k}-dtActual">${wvFmtT(wvDtActual(k))}</b></span>
         </div>
         <div class="wv-zoom" id="wv-${k}-zoom">${wvZoom(k)}</div>
       </div>` : '';
@@ -5615,8 +5703,9 @@ setTimeout(()=>{
     syncPAR();
     set('wv-'+k+'-per', wvFmtT(Tp));
     setT('wv-'+k+'-tDTS', wvFmtT(1/(clk*1e6)));
-    setT('wv-'+k+'-dtActual', wvFmtT(wvDtg(k)/(clk*1e6)));
-    set('wv-'+k+'-dtns', Math.min(+p.dtns||0, Math.round(255/(clk*1e6)*1e9)));
+    setT('wv-'+k+'-dtActual', wvFmtT(wvDtActual(k)));
+    setT('wv-'+k+'-dtMax', wvFmtT(wvMaxDTns(k)*1e-9));
+    set('wv-'+k+'-dtns', Math.min(+p.dtns||0, wvMaxDTns(k)));
     set('wv-'+k+'-dtnsNum', +p.dtns||0);
     set('wv-'+k+'-dtgNum', wvDtg(k));
     const zoom = document.getElementById('wv-'+k+'-zoom');
@@ -5679,9 +5768,8 @@ setTimeout(()=>{
       else if(dw==='arr'||dw==='arrnum'){ p.arr = Math.min(65535, Math.max(0, +t.value||0)); renderPeriphPanel(); }
       else if(dw==='ch'){ p['pulse'+t.dataset.ch] = Math.min(+p.arr||999, Math.max(0, +t.value||0)); renderPeriphPanel(); }
       else if(dw==='chnum'){ p['pulse'+t.dataset.ch] = Math.min(+p.arr||999, Math.max(0, +t.value||0)); renderPeriphPanel(); }
-      else if(dw==='dtns'){ p.dtns = Math.min(Math.round(255/(clk*1e6)*1e9), Math.max(0, +t.value||0)); renderPeriphPanel(); }
-      else if(dw==='dtnsnum'){ p.dtns = Math.min(Math.round(255/(clk*1e6)*1e9), Math.max(0, +t.value||0)); renderPeriphPanel(); }
-      else if(dw==='dtgnum'){ const v = Math.min(255, Math.max(0, +t.value||0)); p.dtns = Math.round(v/(clk*1e6)*1e9); renderPeriphPanel(); }
+      else if(dw==='dtns'||dw==='dtnsnum'){ p.dtns = Math.min(wvMaxDTns(k), Math.max(0, +t.value||0)); renderPeriphPanel(); }
+      else if(dw==='dtgnum'){ const v = Math.min(255, Math.max(0, +t.value||0)); p.dtns = Math.min(wvMaxDTns(k), Math.round(wvDtgToNs(v, wvDtTick(k))*1e9)); renderPeriphPanel(); }
       else if(dw==='freq'){ wvApplyTarget(k, true, t.value); }
       else if(dw==='per'){ wvApplyTarget(k, false, t.value); }
       else if(dw==='comp'){ p.comp = t.checked; renderPeriphPanel(); }
@@ -5701,5 +5789,5 @@ setTimeout(()=>{
   });
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2daedd19cdbd36d',t:'MTc4NzE2MTA3NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2dbc33a1fbdd296',t:'MTc4NzE2OTgxNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
