@@ -88,7 +88,7 @@ Generated code targets the matching vendor SDK for each family:
 3. Pick your **Device** in the top bar, configure **pins → clocks**, then generate **code**.
 
 > 💡 **Tip:** enable **GitHub Pages** on the repository (Settings → Pages → branch `main`) and the app is also usable online at
-> `https://mrz-ir.github.io/OpenMCU-Cube/OpenMCU_Cube1_5_8.html`.
+> `https://mrz-ir.github.io/OpenMCU-Cube/OpenMCU_Cube.html`.
 
 ![Mobile layout](docs/screenshot-mobile.png)
 
@@ -129,7 +129,7 @@ Generated code targets the matching vendor SDK for each family:
 ## 🗂 Repository layout
 
 ```
-OpenMCU_Cube1_5_8.html   ← the entire application (single self-contained file)
+OpenMCU_Cube.html   ← the entire application (single self-contained file)
 docs/                    ← screenshots used in this README
 LICENSE                  ← MIT license
 CHANGELOG.md             ← version history (maintained from v1.5.7 on)
@@ -143,7 +143,7 @@ SECURITY.md              ← how to report vulnerabilities
 
 The whole application is **one self-contained HTML file** (HTML + CSS + JavaScript, including the embedded vendor SDK payloads). Working on it is intentionally simple:
 
-1. Open `OpenMCU_Cube1_5_8.html` in any text editor.
+1. Open `OpenMCU_Cube.html` in any text editor.
 2. Edit, then refresh the browser tab to test — no build step.
 3. Before committing:
    - bump the version (badge in the top bar, document title, generated-code headers);
