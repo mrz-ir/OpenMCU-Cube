@@ -386,7 +386,7 @@ html[data-theme="light"] .ckbox.active{stroke:#2f7d5c !important;}
 footer{max-width:1440px;margin:10px auto 40px;padding:0 24px;color:var(--text-dim);font-size:11.5px;line-height:1.9;}
 footer a{color:var(--text-dim);text-decoration:underline;}
 
-/* ---------- v1.5.8: timer waveform designer ---------- */
+/* ---------- v1.6.0: timer waveform designer ---------- */
 input.num{
   width:88px;background:var(--panel-2);border:1px solid var(--border);color:var(--text-bright);
   border-radius:6px;padding:6px 8px;font-family:var(--mono);font-size:12.5px;text-align:right;
@@ -471,7 +471,7 @@ html[data-theme="light"] .wv-lbl.blue{fill:#3d6fd8;}
       </svg>
       <div class="mark"><span class="b-open">Open</span><span class="b-mcu">MCU</span><span class="b-cube"> Cube</span></div>
     </div>
-    <div class="tag"><span class="ver">v1.5.8</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span></div>
+    <div class="tag"><span class="ver">v1.6.0</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span></div>
   </div>
 </header>
 
@@ -951,7 +951,7 @@ const SERIES = {
   periphs:["USART1","USART2","USART3","SPI1","SPI2","I2C1","I2C2","CAN1","TIM1","TIM2","TIM3","TIM4","ADC","RTC","MCO","SWD"],
   apbBuses:[
     {bus:"APB1",presc:"apb",periphs:["USART2","USART3","SPI2","I2C1","I2C2","TIM2","TIM3","TIM4"]},
-    {bus:"APB2",presc:"apb2",periphs:["USART1","SPI1","TIM1","ADC","CAN1"]},
+    {bus:"APB2",presc:"apb2",periphs:["USART1","SPI1","TIM1","ADC"]},
   ],
   af:{
    PA0:{af:[["USART2_CTS",7],["TIM2_CH1_ETR",1]],analog:["ADC_IN0"]},
@@ -1450,7 +1450,7 @@ function projectSettingsObject(){
   const uvChk = document.getElementById('includeUvprojx');
   return {
     __hkpy32cubemx_settings__: true,
-    toolVersion: '1.5',
+    toolVersion: '1.6.0.2',
     savedAt: new Date().toISOString(),
     series: state.series,
     pkg: state.pkg,
@@ -1869,13 +1869,17 @@ function cardHtml(name){
       .join('') + `</div>`;
   }
   if(enabled && params.length){
-    html += `<div class="paramgrid">` + params.map(([key,label,opts,def])=>{
+    const plist = (window.wvParamFilter||(a=>a))(name, params);
+    html += `<div class="paramgrid">` + plist.map(([key,label,opts,def])=>{
       if(pr[key]===undefined) pr[key]=def;
       const val = pr[key];
       if(opts && opts.length){
         return `<div class="field"><label>${label}</label><select data-p="${name}.${key}">${opts.map(o=>`<option ${String(o)===String(val)?'selected':''}>${o}</option>`).join('')}</select></div>`;
       }
-      return `<div class="field"><label>${label}</label><input type="text" data-p="${name}.${key}" value="${val}"></div>`;
+      {
+        const rg = (window.wvParamRange||(()=>null))(name, key, val);
+        return `<div class="field"><label>${label}${rg?` <span style="color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">(${rg[2]})</span>`:''}</label><input type="text" data-p="${name}.${key}" value="${val}" title="${rg?('Allowed: '+rg[2]):''}"></div>`;
+      }
     }).join('') + `</div>`;
   }
   html += `</div>`;
@@ -1911,7 +1915,7 @@ function computeClock(){
   if(c.pll){
     let src;
     if(c.pllSrc==='HSE') src = c.hseFreq;
-    else if(S.pllHsiInput) src = S.pllHsiInput;   /* F103: HSI8M/2=4MHz - C030: HSI pin 8MHz (اسیلاتandر ثابت 64MHz تقسیم‌done) */
+    else if(S.pllHsiInput) src = (S.label==='HK32F103' ? (Number(c.hsi)===56 ? 8 : 4) : S.pllHsiInput);   /* HK32F103: HSI56/7=8MHz for 72/120MHz PLL; HSI8/2=4MHz otherwise */
     else src = c.hsi;                             /* PY32: PLL input خandد HSI selectionی is */
     pllOut = src*parseFloat(c.pllMul||2);
   }
@@ -2210,7 +2214,7 @@ function renderClockDiagram(){
 
   /* ================= BOXES (drawn over the lines) ================= */
   box(X1,40,CW,CH,'HSI (RC)', c.hsi+' MHz', {active:true});
-  box(X1,110,CW,CH,'HSE (XTAL)', c.hse? c.hseFreq+' MHz':'Off', {dim:!c.hse, active:c.hse});
+  box(X1,110,CW,CH,'HSE / EXTCLK', c.hse? c.hseFreq+' MHz':'Off', {dim:!c.hse, active:c.hse});
   box(X1,LSIY,CW,CH,'LSI (RC)', c.lsi? lsiTxt:'Off', {dim:!c.lsi, active:c.lsi});
   if(hasLSE) box(X1,APBY,CW,CH,'LSE (XTAL)', c.lse? (S.lseKHz||32.768)+' kHz':'Off', {dim:!c.lse, active:c.lse});
   if(S.hasPLL) box(X2,110,CW,CH,'PLL ×'+c.pllMul, c.pll? fmt(r.pllOut):'Off', {dim:!c.pll, active:c.pll, warn:c.pll&&r.pllOut>S.maxMHz});
@@ -3239,7 +3243,7 @@ function sdkReadmeText(){
     HKF0301M:'https://github.com/IOsetting/hk32f030m-template (Libraries/HK32F030M_Driver)',
   };
   return [
-    'OpenMCU Cube v1.5.8 - generated project',
+    'OpenMCU Cube v1.6.0 - generated project',
     '=================================',
     'Target : ' + curPkg().label,
     'SDK    : ' + (isHALStyle() ? (sdkStyle()==='PY32F002B_HAL' ? 'py32f002b HAL' : 'py32f0xx HAL') : sdkStyle().replace('HK_STD_','') + ' StdPeriph library'),
@@ -3382,7 +3386,7 @@ function generateUvprojx(hdrFiles){
 '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>',
 '<Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="project_projx.xsd">',
 '  <SchemaVersion>2.1</SchemaVersion>',
-'  <Header>### uVision Project, generated by OpenMCU Cube v1.5.8 — verify Device/IROM/IRAM against your exact chip'+(vendor?' (Vendor pack: '+packId+')':' (no vendor pack referenced — pick your device manually)')+' before use ###</Header>',
+'  <Header>### uVision Project, generated by OpenMCU Cube v1.6.0 — verify Device/IROM/IRAM against your exact chip'+(vendor?' (Vendor pack: '+packId+')':' (no vendor pack referenced — pick your device manually)')+' before use ###</Header>',
 '  <Targets>',
 '    <Target>',
 '      <TargetName>Target 1</TargetName>',
@@ -3637,7 +3641,7 @@ function toast(msg,type){
    ============================================================ */
 (function(){
   const V14 = '1.5.2';
-  document.title = 'OpenMCU Cube v1.5.8 · HK32 / PY32 Configurator';
+  document.title = 'OpenMCU Cube v1.6.0.2 · HK32 / PY32 Configurator';
 
   const AF_HKF0301M = {
     PA0:{af:[["TIM1_BKIN",3],["TIM2_CH3",4],["MCO",5]],analog:[]},
@@ -3893,7 +3897,7 @@ function toast(msg,type){
     const uvLine = (uvInfo && uvInfo.vendor)
       ? ' - Vendor/Device pack "'+uvInfo.packId+'" is referenced and is a real, installable Keil pack (install via Pack Installer if missing); pick your exact chip in Options for Target -> Device if it differs from '+uvInfo.device+'.'
       : ' - No vendor device pack is referenced for this MCU family (none found in the public Keil pack index); pick your exact chip manually in Options for Target -> Device once a matching pack is installed.';
-    return ['OpenMCU Cube v1.5.8 - generated configuration','===============================================','Target: '+curPkg().label,'Series: '+curSeries().label,'SDK reference: '+(links[state.series]||'vendor SDK'),'',
+    return ['OpenMCU Cube v1.6.0 - generated configuration','===============================================','Target: '+curPkg().label,'Series: '+curSeries().label,'SDK reference: '+(links[state.series]||'vendor SDK'),'',
       'Contents:',' - main.c                : generated init code (edit only between USER CODE BEGIN/END)',' - Drivers/              : required CMSIS device + peripheral headers (from the official SDK)',' - project_settings.json : full configurator state (device/pins/peripherals/clock tree/project name)',' - <project>.uvprojx     : Keil uVision5 project (only if the "Keil uVision project" checkbox was on)','',
       'Resuming / editing this project later:',' - Reopen OpenMCU Cube, go to the code tab, and use the upload box to select main.c AND project_settings.json together.',' - Selecting project_settings.json restores the device, pin map, peripherals, clock tree, project name AND the Keil-project checkbox state exactly as saved.',' - The output filename field controls the .zip archive name and the .uvprojx file name; the single .c download and the file inside the zip are always main.c.','',
       'Keil uVision project (.uvprojx):',
@@ -3906,7 +3910,7 @@ function toast(msg,type){
   };
 
   /* version badge */
-  setTimeout(()=>{try{const logo=document.querySelector('.logo .tag');if(logo)logo.innerHTML='<span class="ver">v1.5.8</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';}catch(_){}} ,0);
+  setTimeout(()=>{try{const logo=document.querySelector('.logo .tag');if(logo)logo.innerHTML='<span class="ver">v1.6.0</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';}catch(_){}} ,0);
 })();
 
 
@@ -4017,7 +4021,7 @@ function toast(msg,type){
     const iromStart='0x08000000', iramStart='0x20000000';
     const iromSize='0x'+info.flash.toString(16), iramSize='0x'+info.ram.toString(16);
     const sim=x.family==='HKF103'?'SARMCM3.DLL':'SARMCM1.DLL', cpuArg=x.family==='HKF103'?'-pCM3':'-pCM0';
-    const header='### uVision Project, generated by OpenMCU Cube v1.5.8 — exact HK32 DFP metadata: '+pack.packId+' / '+x.device+' ###';
+    const header='### uVision Project, generated by OpenMCU Cube v1.6.0 — exact HK32 DFP metadata: '+pack.packId+' / '+x.device+' ###';
     const startup=info.startup, algo=info.algo, svd=info.svd;
     return [
 '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>',
@@ -4075,7 +4079,7 @@ function toast(msg,type){
   };
 
   setTimeout(()=>{try{
-    const tag=document.querySelector('.logo .tag'); if(tag) tag.innerHTML='<span class="ver">v1.5.8</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';
+    const tag=document.querySelector('.logo .tag'); if(tag) tag.innerHTML='<span class="ver">v1.6.0</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';
   }catch(_){}} ,0);
 })();
 
@@ -4095,6 +4099,12 @@ catch(err){
 </script>
 
 <script>
+/* Global series-key helper.
+   The HK32 Keil/StdPeriph override module is loaded before the later IRQ module
+   that originally declared serKey() inside its own IIFE.  Without this global
+   helper, the earlier module throws: ReferenceError: serKey is not defined. */
+function serKey(){ return (window.state && window.state.series) || ''; }
+
 /* ============================================================================
    OpenMCU Cube v1.5.6 — Keil (.uvprojx) build fix
    ----------------------------------------------------------------------------
@@ -4376,7 +4386,7 @@ function patchHalConf(text){
   };
   setVal('HSE_VALUE', Math.round((Number(c.hseFreq)||8)*1e6));
   setVal('HSI_VALUE', Math.round((Number(c.hsi)||8)*1e6));
-  return '/* Module selection patched by OpenMCU Cube v1.5.8 to match the enabled\r\n'+
+  return '/* Module selection patched by OpenMCU Cube v1.6.0 to match the enabled\r\n'+
          '   peripherals. HAL_DMA stays on: the SPI/I2C/TIM/UART/ADC headers all\r\n'+
          '   reference DMA_HandleTypeDef unconditionally. */\r\n' + text;
 }
@@ -4403,7 +4413,7 @@ function patchStdConf(text){
     text = text.replace(/^[ \t]*(?:\/\/)?[ \t]*#define[ \t]+SYSCLK_SOURCE[ \t].*$/m,
                         '#define SYSCLK_SOURCE '+src);
   }
-  return '/* SYSCLK_SOURCE set by OpenMCU Cube v1.5.8 from the Clock tab. */\r\n'+text;
+  return '/* SYSCLK_SOURCE set by OpenMCU Cube v1.6.0 from the Clock tab. */\r\n'+text;
 }
 
 
@@ -4441,7 +4451,7 @@ py32AfMacro = function(pinName, fnName){
 function itHeaderText(){
   const info=sdkInfo(); const g='__'+info.itBase.toUpperCase()+'_IT_H';
   const m3 = info.core==='Cortex-M3';
-  const L=['/* Generated by OpenMCU Cube v1.5.8 */','#ifndef '+g,'#define '+g,
+  const L=['/* Generated by OpenMCU Cube v1.6.0 */','#ifndef '+g,'#define '+g,
     '#ifdef __cplusplus','extern "C" {','#endif','',
     'void NMI_Handler(void);','void HardFault_Handler(void);'];
   if(m3){ L.push('void MemManage_Handler(void);'); L.push('void BusFault_Handler(void);'); L.push('void UsageFault_Handler(void);'); }
@@ -4453,7 +4463,7 @@ function itHeaderText(){
 }
 function itSourceText(){
   const info=sdkInfo(); const hal=info.style==='HAL'; const m3=info.core==='Cortex-M3';
-  const L=['/* Generated by OpenMCU Cube v1.5.8 — core exception handlers.',
+  const L=['/* Generated by OpenMCU Cube v1.6.0 — core exception handlers.',
     '   USER CODE blocks here are preserved when you re-import this file. */',
     '#include "'+info.mainInclude+'"',
     '#include "'+info.itBase+'_it.h"','',
@@ -4485,7 +4495,7 @@ function itSourceText(){
    weak default and gives users a hook. */
 function mspText(){
   const info=sdkInfo();
-  return ['/* Generated by OpenMCU Cube v1.5.8 */',
+  return ['/* Generated by OpenMCU Cube v1.6.0 */',
     '#include "'+info.mainInclude+'"','',
     'void HAL_MspInit(void)','{',
     '/* USER CODE BEGIN MSP_INIT */',
@@ -4667,7 +4677,7 @@ function uvprojxText(allFiles){
 '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>',
 '<Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="project_projx.xsd">',
 '  <SchemaVersion>2.1</SchemaVersion>',
-'  <Header>### uVision Project, generated by OpenMCU Cube v1.5.8 ###</Header>',
+'  <Header>### uVision Project, generated by OpenMCU Cube v1.6.0 ###</Header>',
 '  <Targets>',
 '    <Target>',
 '      <TargetName>'+out+'</TargetName>',
@@ -4908,7 +4918,7 @@ function uvoptxText(){
 '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>',
 '<ProjectOpt xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="project_optx.xsd">',
 '  <SchemaVersion>1.0</SchemaVersion>',
-'  <Header>### uVision Project, generated by OpenMCU Cube v1.5.8 ###</Header>',
+'  <Header>### uVision Project, generated by OpenMCU Cube v1.6.0 ###</Header>',
 '  <Extensions><cExt>*.c</cExt><aExt>*.s*; *.src; *.a*</aExt><oExt>*.obj; *.o</oExt><lExt>*.lib</lExt><tExt>*.txt; *.h; *.inc; *.md</tExt><pExt>*.plm</pExt><CppX>*.cpp</CppX><nMigrate>0</nMigrate></Extensions>',
 '  <Target>',
 '    <TargetName>'+out+'</TargetName>',
@@ -4953,8 +4963,8 @@ async function buildProjectFiles(){
 
   /* application layer */
   files.push({name:'Core/Src/main.c', text: mainC});
-  files.push({name:'Core/Src/'+info.itBase+'_it.c', text: itSourceText()});
-  files.push({name:'Core/Inc/'+info.itBase+'_it.h', text: itHeaderText()});
+  files.push({name:'Core/Src/'+info.itBase+'_it.c', text: (window.itSourceText||itSourceText)()});
+  files.push({name:'Core/Inc/'+info.itBase+'_it.h', text: (window.itHeaderText||itHeaderText)()});
   if(info.style==='HAL'){
     files.push({name:'Core/Src/'+info.itBase+'_hal_msp.c', text: mspText()});
   }
@@ -5000,6 +5010,369 @@ downloadAll = async function(){
   }
 };
 
+
+/* ============================================================
+   OpenMCU Cube v1.6.0 — deterministic device/SDK hardening
+   IMPORTANT: this is NOT a compile-validation engine.  It only
+   fixes generation from the bundled vendor SDK/documented tables.
+   ============================================================ */
+(function(){
+  const V160='1.6.0';
+
+  /* ---------- canonical memory/device corrections ---------- */
+  if(typeof UVISION_CORE_INFO!=='undefined'){
+    if(UVISION_CORE_INFO.HKF103){
+      UVISION_CORE_INFO.HKF103.ram=0x5000; /* HK32F103: 20 KiB */
+    }
+  }
+  if(typeof SERIES_SDK!=='undefined'){
+    if(SERIES_SDK.HKF103) SERIES_SDK.HKF103.ram=0x5000;
+  }
+
+  /* HK32F030M/0301M have four possible GPIO external-clock inputs. */
+  try{
+    if(SERIES.HKF030M) SERIES.HKF030M.hsePins=['PA1','PD7','PB5','PC5'];
+    if(SERIES.HKF0301M) SERIES.HKF0301M.hsePins=['PA1','PD7','PB5','PC5'];
+  }catch(_){ }
+
+  /* HK32C030 really has TIM6; expose it as a no-pin peripheral. */
+  if(!PERIPH_META.TIM6){
+    PERIPH_META.TIM6={group:'Timers',desc:'16-bit basic timer — internal timebase / interrupt',optional:[],noPin:true};
+    PERIPH_ORDER.splice(PERIPH_ORDER.indexOf('TIM14'),0,'TIM6');
+    PERIPH_PARAMS.TIM6=[['psc','Prescaler (PSC)','','47'],['arr','Period (ARR)','','999']];
+  }
+  if(SERIES.HKC030 && !SERIES.HKC030.periphs.includes('TIM6')) SERIES.HKC030.periphs.splice(SERIES.HKC030.periphs.indexOf('TIM14'),0,'TIM6');
+
+  /* HK32F030M/0301M BEEPER is a real AF6 peripheral in the bundled SDK. */
+  if(!PERIPH_META.BEEP){
+    PERIPH_META.BEEP={group:'System',desc:'BEEPER — vendor buzzer peripheral',optional:[['BEEP','BEEP']],noPin:false};
+    PERIPH_ORDER.splice(PERIPH_ORDER.indexOf('MCO'),0,'BEEP');
+    PERIPH_PARAMS.BEEP=[
+      ['clock','Clock source',['LSI','HSE'],'LSI'],
+      ['presc','Prescaler',['16','32','64','128'],'128']
+    ];
+  }
+  ['HKF030M','HKF0301M'].forEach(k=>{
+    if(SERIES[k] && !SERIES[k].periphs.includes('BEEP')) SERIES[k].periphs.splice(SERIES[k].periphs.indexOf('MCO'),0,'BEEP');
+    if(SERIES[k] && SERIES[k].af){
+      Object.keys(SERIES[k].af).forEach(pin=>{
+        if(pin==='NRST') return;
+        const a=SERIES[k].af[pin].af||[];
+        if(!a.some(x=>x[0]==='BEEP')) a.push(['BEEP',6]);
+      });
+    }
+  });
+
+  /* ---------- timer channel parser: accept HK32C030 TIMx_CHn_ETR ---------- */
+  timChannel = function(fn){
+    const m=String(fn||'').match(/^TIM\d+_CH(\d)(N?)(?:_ETR)?$/);
+    return m?{ch:m[1],n:!!m[2],etr:/_ETR$/.test(String(fn))}:null;
+  };
+
+  /* C030 uses UARTx (not USARTx) in its StdPeriph driver.  Keep the UI's
+     USART naming for cross-family AF consistency, but translate only at the
+     SDK boundary. */
+  const _stdPeriphClockLine=stdPeriphClockLine;
+  stdPeriphClockLine=function(k){
+    const sdk=sdkStyle();
+    if(sdk==='HK_STD_C030' && /^USART\d$/.test(k)) return _stdPeriphClockLine('UART'+k.slice(5));
+    if(sdk==='HK_STD_F030M' && k==='BEEP') return '  RCC_APB1PeriphClockCmd(RCC_APB1Periph_BEEPER, ENABLE);';
+    if(sdk==='HK_STD_C030' && k==='TIM6') return '  RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);';
+    return _stdPeriphClockLine(k);
+  };
+  const _periphOfFn=periphOfFn;
+  periphOfFn=function(fn){ if(fn==='BEEP') return 'BEEP'; return _periphOfFn(fn); };
+  const _hasInitStub=hasInitStub;
+  hasInitStub=function(k){ return k==='BEEP' ? true : _hasInitStub(k); };
+
+  /* ---------- correct HK32F103 flash wait-state mapping ---------- */
+  stdLatency = function(){
+    const s=serKey(), f=Number(computeClock().sysclk)||0;
+    if(s==='HKF103'){
+      if(c.pll && c.pllSrc==='HSI' && Number(c.hsi)===56 && f>=120) return 'FLASH_Latency_6';
+      if(f<=24) return 'FLASH_Latency_0';
+      if(f<=48) return 'FLASH_Latency_1';
+      if(f<=72) return 'FLASH_Latency_2';
+      if(f<=90) return 'FLASH_Latency_3';
+      return 'FLASH_Latency_4';
+    }
+    if(s==='HKC030'){
+      if(f<=24) return 'FLASH_Latency_0';
+      if(f<=48) return 'FLASH_Latency_1';
+      return 'FLASH_Latency_2';
+    }
+    if(s==='HKF0301M') return f<=24?'FLASH_Latency_0':'FLASH_Latency_2';
+    return f<=16?'FLASH_Latency_0':'FLASH_Latency_1';
+  };
+  halLatency = function(){
+    const f=Number(computeClock().sysclk)||0;
+    return f<=24?'FLASH_LATENCY_0':'FLASH_LATENCY_1';
+  };
+
+  /* ---------- PY32 HAL clock generator fixes ---------- */
+  const _genHALSystemClock=genHALSystemClock;
+  genHALSystemClock=function(L){
+    const start=L.length;
+    _genHALSystemClock(L);
+    const sdk=sdkStyle();
+    if(!['PY32_HAL','PY32F002B_HAL'].includes(sdk)) return;
+    const c=state.clk||{}, S=curSeries();
+    const hseFreq=Number(c.hseFreq)||8;
+    const hseMacro=hseFreq<=8?'RCC_HSE_4_8MHz':(hseFreq<=16?'RCC_HSE_8_16MHz':'RCC_HSE_16_24MHz');
+    const cal=String(c.hsi).replace('.','_').replace('22_12','22p12');
+    for(let i=start;i<L.length;i++){
+      if(/^  RCC_OscInitStruct\.HSICalibrationValue = /.test(L[i]))
+        L[i]='  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_'+cal+'MHz;';
+      if(/^  RCC_OscInitStruct\.HSEState = RCC_HSE_ON/.test(L[i])){
+        if(sdk==='PY32F002B_HAL'){
+          L[i]='  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;   /* F002B external GPIO clock */';
+        } else {
+          L.splice(i+1,0,'  RCC_OscInitStruct.HSEFreq = '+hseMacro+';'); i++;
+        }
+      }
+    }
+    /* Every bundled PY32 HAL exposes HSIDiv; the selected HSI values in the UI
+       are calibration-frequency outputs, so DIV1 is the deterministic choice. */
+    const pos=L.findIndex((x,i)=>i>=start && /RCC_OscInitStruct\.HSICalibrationValue/.test(x));
+    if(pos>=0 && !L.some((x,i)=>i>=start && /RCC_OscInitStruct\.HSIDiv/.test(x)))
+      L.splice(pos+1,0,'  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;');
+  };
+
+  /* ---------- PY32 HAL configuration header fixes ---------- */
+  const _patchHalConf=patchHalConf;
+  patchHalConf=function(text){
+    let t=_patchHalConf(text);
+    const s=state.series;
+    if(s==='F030' && Number(state.clk.hsi)===22.12){
+      /* no macro change is needed here; generated source uses 22p12MHz */
+    }
+    return t;
+  };
+
+  /* ---------- HK StdPeriph clock fixes ---------- */
+  const _genStdSystemClock=genStdSystemClock;
+  genStdSystemClock=function(L){
+    const start=L.length;
+    _genStdSystemClock(L);
+    const s=serKey(), c=state.clk||{};
+    if(s==='HK_STD_F030M'){
+      if(c.hse){
+        const pin=c.hsePin||((curSeries().hsePins||[])[0]||'PA1');
+        const sel={PA1:'RCC_CFGR4_EXTCLK_SEL_PA1',PD7:'RCC_CFGR4_EXTCLK_SEL_PD7',PB5:'RCC_CFGR4_EXTCLK_SEL_PB5',PC5:'RCC_CFGR4_EXTCLK_SEL_PC5'}[pin]||'RCC_CFGR4_EXTCLK_SEL_PA1';
+        const port=pin[1], num=pin.slice(2);
+        for(let i=start;i<L.length;i++){
+          if(L[i].includes('RCC_EXTCmd(ENABLE);')){
+            const extra=[];
+            if(pin!=='PA1'){
+              extra.push('  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIO'+port+', ENABLE);');
+              extra.push('  { GPIO_InitTypeDef extclk; extclk.GPIO_Pin = GPIO_Pin_'+num+'; extclk.GPIO_Mode = GPIO_Mode_IN; extclk.GPIO_PuPd = GPIO_PuPd_NOPULL; GPIO_Init(GPIO'+port+', &extclk); }');
+            }
+            extra.push('  RCC_EXTCmd(ENABLE, '+sel+');');
+            L.splice(i,1,...extra);
+            break;
+          }
+        }
+      }
+      /* HK32F0301M is 48 MHz and requires two Flash latency cycles. */
+      if(s==='HK_STD_F030M' && Number(curSeries().maxMHz)===48){
+        for(let i=start;i<L.length;i++) if(/FLASH_SetLatency\(/.test(L[i])) L[i]=L[i].replace(/FLASH_Latency_[01]/,'FLASH_Latency_2');
+      }
+    }
+    if(s==='HK_STD_F1'){
+      /* The HK32F103 PLL has two distinct HSI paths in the vendor SDK:
+         HSI8/2=4MHz and HSI56/7=8MHz.  The old generator treated both as 4MHz. */
+      if(c.pll && c.pllSrc==='HSI'){
+        for(let i=start;i<L.length;i++){
+          if(/^  RCC_PLLConfig\(/.test(L[i])){
+            const mul=parseInt(c.pllMul,10)||9;
+            if(Number(c.hsi)===56){
+              L.splice(i,0,'  RCC_PREDIVConfig(RCC_PLLPREDIV_7);'); i++;
+              L[i]='  RCC_PLLConfig(RCC_PLLSource_HSI56M, '+mul+');';
+            } else {
+              L[i]='  RCC_PLLConfig(RCC_PLLSource_HSI8M_Div2, '+mul+');';
+            }
+            break;
+          }
+        }
+      }
+      /* SystemCoreClock in the bundled HK32F103 system file is compile-time
+         selected; make the generated application's timebase explicit. */
+      const hz=Math.max(1,Math.round((Number(computeClock().hclk)||0)*1e6));
+      const at=L.findIndex((x,i)=>i>=start && /RCC_PCLK2Config/.test(x));
+      if(at>=0 && !L.slice(start).some(x=>/SystemCoreClock\s*=/.test(x)))
+        L.splice(at+1,0,'  SystemCoreClock = '+hz+'U;');
+    }
+  };
+
+  /* ---------- F1 remap generation from the actual bundled GPIO header ---------- */
+  function f1RemapLines(){
+    if(serKey()!=='HK_STD_F1') return [];
+    const used={};
+    Object.entries(state.pins||{}).forEach(([pin,st])=>{
+      if(st && st.mode==='AF' && st.af) used[pin]=st.af;
+    });
+    const out=[];
+    const has=(pin, re)=>!!used[pin] && re.test(used[pin]);
+    if(has('PB8',/^I2C_SCL$/)||has('PB9',/^I2C_SDA$/)) out.push('  GPIO_PinRemapConfig(GPIO_Remap_I2C1, ENABLE);');
+    if(has('PB3',/^(TIM2_CH2|SPI1_SCK)$/)||has('PB4',/^(TIM3_CH1|SPI1_MISO)$/)||has('PB5',/^(TIM3_CH2|SPI1_MOSI)$/)){
+      if(has('PB3',/^SPI1_SCK$/)||has('PB4',/^SPI1_MISO$/)||has('PB5',/^SPI1_MOSI$/)) out.push('  GPIO_PinRemapConfig(GPIO_Remap_SPI1, ENABLE);');
+    }
+    const tim2pb3=has('PB3',/^TIM2_CH2$/), tim2pa15=has('PA15',/^TIM2_CH1_ETR$/);
+    const tim2pb10=has('PB10',/^TIM2_CH3$/), tim2pb11=has('PB11',/^TIM2_CH4$/);
+    if(tim2pb10||tim2pb11){
+      out.push('  GPIO_PinRemapConfig('+(tim2pb3||tim2pa15?'GPIO_FullRemap_TIM2':'GPIO_PartialRemap2_TIM2')+', ENABLE);');
+    } else if(tim2pb3||tim2pa15){
+      out.push('  GPIO_PinRemapConfig(GPIO_PartialRemap1_TIM2, ENABLE);');
+    }
+    if(has('PB4',/^TIM3_CH1$/)||has('PB5',/^TIM3_CH2$/)) out.push('  GPIO_PinRemapConfig(GPIO_PartialRemap_TIM3, ENABLE);');
+    if(has('PB3',/^(TIM2_CH2|SPI1_SCK)$/)||has('PB4',/^(TIM3_CH1|SPI1_MISO)$/))
+      out.push('  GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);');
+    return [...new Set(out)];
+  }
+  const _genStdGpioInit=genStdGpioInit;
+  genStdGpioInit=function(L,ports){
+    const start=L.length; _genStdGpioInit(L,ports);
+    const rem=f1RemapLines();
+    if(rem.length){
+      const i=L.findIndex((x,n)=>n>=start && x==='/* USER CODE END GPIO */');
+      if(i>=0) L.splice(i+1,0,...rem);
+    }
+  };
+
+  /* ---------- no-pin peripherals (TIM6) and BEEPER ---------- */
+  const _detectPeripherals=detectPeripherals;
+  detectPeripherals=function(){
+    const map=_detectPeripherals();
+    ['TIM6','BEEP'].forEach(k=>{
+      if(PERIPH_META[k] && PERIPH_META[k].noPin && periphEnabled(k) && !map[k]) map[k]=[];
+      else if(k==='BEEP' && periphEnabled(k) && !map[k]){
+        const pin=Object.entries(state.pins||{}).find(([p,st])=>st&&st.af==='BEEP');
+        if(pin) map[k]=[{pin:pin[0],fn:'BEEP'}];
+      }
+    });
+    return map;
+  };
+
+  /* Extend StdPeriph generator without touching the vendor API surface. */
+  const _genStdPeriphStubs=genStdPeriphStubs;
+  genStdPeriphStubs=function(L,map){
+    const start=L.length;
+    _genStdPeriphStubs(L,map);
+    if(serKey()==='HK_STD_C030'){
+      for(let i=start;i<L.length;i++){
+        L[i]=L[i].replace(/USART_InitTypeDef/g,'UART_InitTypeDef')
+             .replace(/USART_StructInit/g,'UART_StructInit')
+             .replace(/USART_Init\(/g,'UART_Init(')
+             .replace(/USART_Cmd/g,'UART_Cmd')
+             .replace(/USART_BaudRate/g,'UART_BaudRate')
+             .replace(/USART_WordLength/g,'UART_WordLength')
+             .replace(/USART_StopBits/g,'UART_StopBits')
+             .replace(/USART_Parity/g,'UART_Parity')
+             .replace(/USART_Mode/g,'UART_Mode')
+             .replace(/\bUSART([123])\b/g,'UART$1');
+        if(/UART_HardwareFlowControl/.test(L[i])) L[i]='';
+      }
+    }
+    /* TIM6 is already implemented by v14GenStdTimer(); v1.6.0 only exposes it in the device model. */
+    if(map.BEEP && serKey()==='HK_STD_F030M'){
+      const p=(state.periph.BEEP&&state.periph.BEEP.params)||{};
+      const pin=map.BEEP[0]&&map.BEEP[0].pin;
+      const port=pin?pin[1]:null, num=pin?pin.slice(2):null;
+      const clk=stdPeriphClockLine('BEEP');
+      L.push('static void MX_BEEP_Init(void)'); L.push('{');
+      if(clk) L.push('  '+clk.trim());
+      L.push('  BEEP_InitTypeDef BEEP_InitStructure;');
+      L.push('  BEEP_InitStructure.BEEP_Prescaler = BEEP_Prescaler_'+(p.presc||128)+';');
+      L.push('  BEEP_InitStructure.BEEP_Clock = '+(String(p.clock||'LSI')==='HSE'?'BEEP_CLOCK_HSE':'BEEP_CLOCK_LSI')+';');
+      L.push('  BEEP_InitStructure.BEEP_TRGOPrescaler = BEEP_TRGO_Prescaler_128;');
+      L.push('  BEEP_InitStructure.BEEP_TRGOCmd = DISABLE;');
+      L.push('  BEEP_Init(&BEEP_InitStructure);');
+      L.push('  BEEP_Cmd(ENABLE);');
+      L.push('/* USER CODE BEGIN BEEP */'); L.push('/* USER CODE END BEEP */'); L.push('}'); L.push('');
+      if(port&&num) L.push('/* BEEP AF6 is selected by GPIO_AF_6 on '+port+num+'. */');
+    }
+  };
+
+  /* ---------- patch the shared StdPeriph configuration header ---------- */
+  const _patchStdConf=patchStdConf;
+  patchStdConf=function(text){
+    let t=_patchStdConf(text);
+    if(state.series==='HKF0301M'){
+      t=t.replace(/SYSCLK_SOURCE\s+SYSCLK_SRC_HSI32M/g,'SYSCLK_SOURCE SYSCLK_SRC_HSI48M');
+      t=t.replace(/#define\s+HSI_VALUE\s+\(\(uint32_t\)32000000\)/g,'#define HSI_VALUE\t((uint32_t)48000000)');
+      t=t.replace(/#define\s+EXTCLK_VALUE\s+\(\(uint32_t\)32000000\)/g,'#define EXTCLK_VALUE\t((uint32_t)'+Math.round((Number(state.clk.hseFreq)||48)*1e6)+')');
+    } else if(state.series==='HKF030M'){
+      t=t.replace(/#define\s+EXTCLK_VALUE\s+\(\(uint32_t\)32000000\)/g,'#define EXTCLK_VALUE\t((uint32_t)'+Math.round((Number(state.clk.hseFreq)||32)*1e6)+')');
+    }
+    return t;
+  };
+
+  /* ---------- patch HK32F0301M's bundled 030M system source for the documented 48 MHz HSI ---------- */
+  const _buildProjectFiles=buildProjectFiles;
+  buildProjectFiles=async function(){
+    const r=await _buildProjectFiles();
+    if(state.series==='HKF0301M'){
+      r.files=r.files.map(f=>{
+        if(!/system_hk32f030m\.c$/i.test(f.name) || typeof f.text!=='string') return f;
+        let t=f.text;
+        t=t.replace('#define SYSCLK_SRC_HSI32M\t\t0x4','#define SYSCLK_SRC_HSI32M\t\t0x4\n#define SYSCLK_SRC_HSI48M\t\t0x7');
+        t=t.replace(/SYSCLK_SOURCE\s*==\s*SYSCLK_SRC_HSI32M/g,'SYSCLK_SOURCE == SYSCLK_SRC_HSI48M');
+        t=t.replace(/SYSCLK_FREQ_HSI_32M/g,'SYSCLK_FREQ_HSI_48M');
+        t=t.replace(/SetSysClockToHSI_32M/g,'SetSysClockToHSI_48M');
+        t=t.replace(/FLASH_Latency_1/g,'FLASH_Latency_2');
+        /* EXTCLK selector is part of the same vendor source file. */
+        const pin=state.clk.hsePin||'PA1';
+        const sel={PA1:'RCC_CFGR4_EXTCLK_SEL_PA1',PD7:'RCC_CFGR4_EXTCLK_SEL_PD7',PB5:'RCC_CFGR4_EXTCLK_SEL_PB5',PC5:'RCC_CFGR4_EXTCLK_SEL_PC5'}[pin]||'RCC_CFGR4_EXTCLK_SEL_PA1';
+        t=t.replace(/RCC_CFGR4_EXTCLK_SEL_PA1/g,sel);
+        const port=pin[1], num=pin.slice(2);
+        if(pin!=='PA1' && !t.includes('/* v1.6.0 external clock pin '+pin+' */')){
+          const needle='\t/*CLOCK select */';
+          const insert='\t/* v1.6.0 external clock pin '+pin+' */\n\tRCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIO'+port+', ENABLE);\n\t{ GPIO_InitTypeDef extclk; extclk.GPIO_Pin = GPIO_Pin_'+num+'; extclk.GPIO_Mode = GPIO_Mode_IN; extclk.GPIO_PuPd = GPIO_PuPd_NOPULL; GPIO_Init(GPIO'+port+', &extclk); }\n';
+          t=t.replace(needle,insert+needle);
+        }
+        return {name:f.name,text:t};
+      });
+    }
+    return r;
+  };
+
+  /* ---------- timer clock model: APB prescaler x2 on HK32F103 ---------- */
+  const oldTimerClk=window.wvTimerClkMHz;
+  if(typeof oldTimerClk==='function'){
+    window.wvTimerClkMHz=function(){
+      const v=oldTimerClk.apply(this,arguments);
+      if(serKey()==='HK_STD_F1'){
+        const r=computeClock();
+        return Number(r.pclk)*((Number(state.clk.apb)||1)!==1?2:1);
+      }
+      return v;
+    };
+  }
+
+  /* ---------- HSE selector control: add it to the clock panel when needed ---------- */
+  function installHseSelector(){
+    if(state.series!=='HKF030M' && state.series!=='HKF0301M') return;
+    const row=document.getElementById('hseFreqRow');
+    if(!row || document.getElementById('hsePin')) return;
+    const wrap=document.createElement('div'); wrap.className='row'; wrap.id='hsePinRow';
+    wrap.innerHTML='<label>External clock input</label><select id="hsePin" class="miniselect"></select>';
+    row.parentNode.insertBefore(wrap,row.nextSibling);
+    const sel=document.getElementById('hsePin');
+    const pins=(curSeries().hsePins||[]);
+    pins.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);});
+    sel.value=state.clk.hsePin||pins[0]||'';
+    sel.addEventListener('change',()=>{state.clk.hsePin=sel.value;renderAll();renderCode();});
+  }
+  const _renderClockSources=renderClockSources;
+  renderClockSources=function(){_renderClockSources();installHseSelector();};
+  const _syncClockInputs=syncClockInputs;
+  syncClockInputs=function(){_syncClockInputs();installHseSelector();const e=document.getElementById('hsePin');if(e)e.value=state.clk.hsePin||((curSeries().hsePins||[])[0]||'');};
+  if(!state.clk.hsePin) state.clk.hsePin=(curSeries().hsePins||[])[0]||'';
+
+  /* Re-render after the data-model additions above. */
+  try{ renderAll(); renderCode(); }catch(_){ }
+})();
+
 /* validateKeilBuildConfig used to block generation whenever a PY32 macro was
    absent; the macro now always comes from SERIES_SDK, so just sanity-check. */
 validateKeilBuildConfig = function(){
@@ -5015,7 +5388,7 @@ function readmeText(files, includeUv){
   const cs=files.filter(f=>/\.c$/i.test(f.name)).length;
   const hs=files.filter(f=>/\.h$/i.test(f.name)).length;
   return [
-'OpenMCU Cube v1.5.8 — generated project',
+'OpenMCU Cube v1.6.0.2 — generated project',
 '=======================================',
 'Target      : '+curPkg().label,
 'Keil device : '+info.device+'   (pack: '+info.pack+')',
@@ -5113,8 +5486,8 @@ buildZip = function(files){
 setTimeout(()=>{
   try{
     const tag=document.querySelector('.logo .tag');
-    if(tag) tag.innerHTML='<span class="ver">v1.5.8</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';
-    document.title = 'OpenMCU Cube v1.5.8 · HK32 / PY32 Configurator';
+    if(tag) tag.innerHTML='<span class="ver">v1.6.0</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';
+    document.title = 'OpenMCU Cube v1.6.0.2 · HK32 / PY32 Configurator';
     const lbl=document.querySelector('label[for="includeUvprojx"]') ||
               (document.getElementById('includeUvprojx')||{}).parentElement;
     if(lbl && /Keil/i.test(lbl.textContent||'')){
@@ -5126,6 +5499,8 @@ setTimeout(()=>{
   }catch(_){}
 },0);
 
+  window.itHeaderText = itHeaderText;
+  window.itSourceText = itSourceText;
 })();
 
 /* ============================================================================
@@ -5217,7 +5592,7 @@ setTimeout(()=>{
 </script>
 <script>
 /* ============================================================
-   v1.5.8 — Timer Waveform Designer
+   v1.6.0 — Timer Waveform Designer
    Time-based, mode-aware diagrams inside each enabled timer card:
    · shows the output signal of every assigned channel pin
    · graphic adjustment of PSC / ARR / per-channel Pulse / polarity
@@ -5725,7 +6100,7 @@ setTimeout(()=>{
   cardHtml = function(name){
     const h = _origCardHtml(name);
     if(/^TIM\d+$/.test(name) && periphEnabled(name)){
-      const wv = wvHtml(name);
+      const wv = (window.wvWvHtmlHook||wvHtml)(name);
       if(wv) return h.replace(/<\/div>\s*$/, wv + '</div>');
     }
     return h;
@@ -5768,6 +6143,8 @@ setTimeout(()=>{
       else if(dw==='arr'||dw==='arrnum'){ p.arr = Math.min(65535, Math.max(0, +t.value||0)); renderPeriphPanel(); }
       else if(dw==='ch'){ p['pulse'+t.dataset.ch] = Math.min(+p.arr||999, Math.max(0, +t.value||0)); renderPeriphPanel(); }
       else if(dw==='chnum'){ p['pulse'+t.dataset.ch] = Math.min(+p.arr||999, Math.max(0, +t.value||0)); renderPeriphPanel(); }
+      else if(dw==='ppr'){ const a=Math.max(0,+p.arr||999); p.ppr = Math.min(Math.max(1,Math.floor((a+1)/4)), Math.max(1, +t.value||1)); renderPeriphPanel(); }
+      else if(dw==='initcnt'){ p.initcnt = Math.min(Math.max(0,+p.arr||999), Math.max(0, +t.value||0)); renderPeriphPanel(); }
       else if(dw==='dtns'||dw==='dtnsnum'){ p.dtns = Math.min(wvMaxDTns(k), Math.max(0, +t.value||0)); renderPeriphPanel(); }
       else if(dw==='dtgnum'){ const v = Math.min(255, Math.max(0, +t.value||0)); p.dtns = Math.min(wvMaxDTns(k), Math.round(wvDtgToNs(v, wvDtTick(k))*1e9)); renderPeriphPanel(); }
       else if(dw==='freq'){ wvApplyTarget(k, true, t.value); }
@@ -5787,7 +6164,709 @@ setTimeout(()=>{
       renderPeriphPanel();
     }
   });
+  window.wvFmtT = wvFmtT;
+  window.wvTimerChannels = wvTimerChannels;
+  window.wvTimerClkMHz = wvTimerClkMHz;
+  window.wvHtmlBase = wvHtml;
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a2dbc33a1fbdd296',t:'MTc4NzE2OTgxNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>
+/* ============================================================
+   v1.6.0 — Interrupts, EXTI, and timer UX upgrades
+   · IRQ support for timers / UART / ADC (NVIC enable + handlers)
+   · EXTI (external interrupts) on any GPIO pin
+   · per-chip verified against the embedded vendor SDK headers
+   · duty slider only in PWM mode; Encoder PPR / initial counter
+   ============================================================ */
+(function(){
+  'use strict';
+
+  /* =========================================================
+     1. PER-CHIP IRQ TABLES (verified against the embedded SDK
+        headers for every supported series)
+     ========================================================= */
+  function serKey(){ return state.series; }
+
+  /* timer IRQ: series -> timer -> [ [IRQn, handler], ... ] */
+  const V19_TIM_IRQ = {
+    F030:{ TIM1:[['TIM1_BRK_UP_TRG_COM_IRQn','TIM1_BRK_UP_TRG_COM_IRQHandler'],['TIM1_CC_IRQn','TIM1_CC_IRQHandler']],
+           TIM3:[['TIM3_IRQn','TIM3_IRQHandler']], TIM14:[['TIM14_IRQn','TIM14_IRQHandler']],
+           TIM16:[['TIM16_IRQn','TIM16_IRQHandler']], TIM17:[['TIM17_IRQn','TIM17_IRQHandler']] },
+    F002A:{ TIM1:[['TIM1_IRQn','TIM1_IRQHandler']], TIM16:[['TIM16_IRQn','TIM16_IRQHandler']] },
+    F002B:{ TIM1:[['TIM1_IRQn','TIM1_IRQHandler']], TIM14:[['TIM14_IRQn','TIM14_IRQHandler']] },
+    HKF103:{ TIM1:[['TIM1_UP_IRQn','TIM1_UP_IRQHandler'],['TIM1_CC_IRQn','TIM1_CC_IRQHandler']],
+             TIM2:[['TIM2_IRQn','TIM2_IRQHandler']], TIM3:[['TIM3_IRQn','TIM3_IRQHandler']], TIM4:[['TIM4_IRQn','TIM4_IRQHandler']] },
+    HKC030:{ TIM1:[['TIM1_BRK_UP_TRG_COM_IRQn','TIM1_BRK_UP_TRG_COM_IRQHandler'],['TIM1_CC_IRQn','TIM1_CC_IRQHandler']],
+             TIM2:[['TIM2_IRQn','TIM2_IRQHandler']], TIM3:[['TIM3_IRQn','TIM3_IRQHandler']],
+             TIM14:[['TIM14_IRQn','TIM14_IRQHandler']], TIM15:[['TIM15_IRQn','TIM15_IRQHandler']],
+             TIM16:[['TIM16_IRQn','TIM16_IRQHandler']], TIM17:[['TIM17_IRQn','TIM17_IRQHandler']] },
+    HKF030M:{ TIM1:[['TIM1_UP_TRG_COM_IRQn','TIM1_UP_TRG_COM_IRQHandler'],['TIM1_CC_IRQn','TIM1_CC_IRQHandler'],['TIM1_BRK_IRQn','TIM1_BRK_IRQHandler']],
+              TIM2:[['TIM2_IRQn','TIM2_IRQHandler']] },
+    HKF0301M:{ TIM1:[['TIM1_UP_TRG_COM_IRQn','TIM1_UP_TRG_COM_IRQHandler'],['TIM1_CC_IRQn','TIM1_CC_IRQHandler'],['TIM1_BRK_IRQn','TIM1_BRK_IRQHandler']],
+               TIM2:[['TIM2_IRQn','TIM2_IRQHandler']] }
+  };
+
+  /* UART/USART IRQ: series -> name used in API (USARTx or UARTx) */
+  const V19_UART_API = {
+    F030:'USART', F002A:'USART', F002B:'USART',
+    HKF103:'USART', HKC030:'UART', HKF030M:'USART', HKF0301M:'USART'
+  };
+  function v19UartIrqn(k, num){
+    const a=V19_UART_API[serKey()]||'USART';
+    return [a+num+'_IRQn', a+num+'_IRQHandler'];
+  }
+
+  /* ADC IRQ per series */
+  const V19_ADC_IRQ = {
+    F030:[['ADC_COMP_IRQn','ADC_COMP_IRQHandler']],
+    HKF103:[['ADC1_2_IRQn','ADC1_2_IRQHandler']],
+    HKC030:[['ADC_IRQn','ADC_IRQHandler']],
+    HKF030M:[['ADC1_IRQn','ADC1_IRQHandler']],
+    HKF0301M:[['ADC1_IRQn','ADC1_IRQHandler']]
+  };
+
+  /* EXTI line -> IRQ group */
+  function v19ExtiGroup(pin){
+    const s=serKey();
+    if(s==='HKF103'){ if(pin<=4) return ['EXTI'+pin+'_IRQn','EXTI'+pin+'_IRQHandler'];
+                      return pin<=9? ['EXTI9_5_IRQn','EXTI9_5_IRQHandler'] : ['EXTI15_10_IRQn','EXTI15_10_IRQHandler']; }
+    if(s==='HKF030M'||s==='HKF0301M') return ['EXTI'+pin+'_IRQn','EXTI'+pin+'_IRQHandler'];
+    /* PY32 F030/F002A/F002B and HK32C030: grouped */
+    if(pin<=1) return ['EXTI0_1_IRQn','EXTI0_1_IRQHandler'];
+    if(pin<=3) return ['EXTI2_3_IRQn','EXTI2_3_IRQHandler'];
+    return ['EXTI4_15_IRQn','EXTI4_15_IRQHandler'];
+  }
+  function v19ExtiLine(pin){ return 'EXTI_Line'+pin; }
+  function v19PortSource(name){ return 'GPIO_PortSourceGPIO'+name[1]; }
+  function v19PinSource(name){ const m=name.match(/\d+$/); return 'GPIO_PinSource'+(m?m[0]:'0'); }
+  function v19GpioPin(name){ const m=name.match(/\d+$/); return 'GPIO_PIN_'+(m?m[0]:'0'); }
+
+  /* HAL or STD? */
+  function v19Hal(){ return isHALStyle(); }
+
+  /* =========================================================
+     2. UI — add Interrupt / Encoder options to the cards
+     ========================================================= */
+  (function addParams(){
+    Object.keys(PERIPH_PARAMS).forEach(k=>{
+      const arr = PERIPH_PARAMS[k];
+      if(!arr) return;
+      if(/^TIM\d+$/.test(k)){
+        if(!arr.some(x=>x[0]==='irq'))  arr.push(['irq','Interrupt',['Disabled','Enabled'],'Disabled']);
+        if(!arr.some(x=>x[0]==='ppr'))  arr.push(['ppr','Encoder — pulses/rev (PPR)','', '1200']);
+        if(!arr.some(x=>x[0]==='initcnt')) arr.push(['initcnt','Encoder — initial counter','', '0']);
+      }
+      if(/^USART\d+$/.test(k) && !arr.some(x=>x[0]==='irq')) arr.push(['irq','Interrupt',['Disabled','Enabled'],'Disabled']);
+      if(k==='ADC' && !arr.some(x=>x[0]==='irq')) arr.push(['irq','Interrupt',['Disabled','Enabled'],'Disabled']);
+    });
+  })();
+
+  /* =========================================================
+     2b. MODE-AWARE PARAMETER FILTER (timers)
+     Each timer mode shows only its own parameters:
+       PWM / OC : mode, psc, arr, pulse, chpol, irq
+       IC       : mode, psc, arr, irq
+       Encoder  : mode, psc, arr, ppr, initcnt, irq
+     ========================================================= */
+  /* per-variable valid range hints for numeric timer fields */
+  window.wvParamRange = function(name, key, val){
+    const p=periphParams(name), mode=p.mode||'PWM Generation', arr=Math.max(0,+p.arr||999), psc=Math.max(0,+p.psc||0);
+    const hw=(name.match(/\d+$/)||['0'])[0];
+    const R={
+      psc:[0,65535,'0..65535'],
+      arr:[0,65535,'0..65535'],
+      pulse:[0,arr,'0..'+arr+' (≤ ARR)'],
+      chpol:[0,0,''],
+      irq:[0,0,''],
+      ppr:[1,Math.max(1,Math.floor((arr+1)/4)),'1..'+Math.max(1,Math.floor((arr+1)/4))+' (counts/rev ≤ ARR+1)'],
+      initcnt:[0,arr,'0..'+arr+' (≤ ARR)']
+    };
+    return R[key]||null;
+  };
+
+  window.wvParamFilter = function(name, params){
+    if(!/^TIM\d+$/.test(name)) return params;
+    const p = periphParams(name);
+    const mode = p.mode||'PWM Generation';
+    const allowed = (()=>{
+      if(mode==='Encoder') return ['mode','psc','arr','ppr','initcnt','irq'];
+      if(mode==='Input Capture') return ['mode','psc','arr','irq'];
+      return ['mode','psc','arr','pulse','chpol','irq'];   /* PWM & OC */
+    })();
+    return params.filter(([k])=>allowed.indexOf(k)>=0);
+  };
+
+  /* =========================================================
+     3. EXTI UI — in the pin configuration panel
+     ========================================================= */
+  const _v19RenderPinConfig = renderPinConfig;
+  renderPinConfig = function(){
+    _v19RenderPinConfig();
+    const name = state.selectedPin;
+    const st = name ? (state.pins[name]||null) : null;
+    if(!st || st.mode==='AF' || st.mode==='ANALOG') return;
+    const panel = document.getElementById('pinConfigPanel');
+    if(!panel) return;
+    const cur = st.exti || 'None';
+    const wrap=document.createElement('div');
+    wrap.className='field';
+    wrap.id='v19-exti-field';
+    wrap.innerHTML = `<label>External interrupt (EXTI) <span class="help" tabindex="0" data-tip="EXTI — external interrupt on this pin. Select the trigger edge; the pin becomes an input and the EXTI line is configured in MX_EXTI_Init with NVIC enabled. The IRQ handler is generated in the _it.c file — put your logic in the USER CODE block or in HAL_GPIO_EXTI_Callback().">?</span></label>
+      <select id="v19ExtiSel">
+        <option ${cur==='None'?'selected':''}>None</option>
+        <option value="Rising" ${cur==='Rising'?'selected':''}>Rising edge</option>
+        <option value="Falling" ${cur==='Falling'?'selected':''}>Falling edge</option>
+        <option value="Both" ${cur==='Both'?'selected':''}>Rising + Falling</option>
+      </select>`;
+    const hint=document.createElement('div');
+    hint.className='hint'; hint.style.fontSize='11px';
+    hint.textContent = cur!=='None' ? 'EXTI enabled — generated handler: '+(v19ExtiGroup(v19PinNum(name))||['',''])[1] : '';
+    wrap.appendChild(hint);
+    /* insert after the first .field */
+    const firstField = panel.querySelector('.field');
+    if(firstField) firstField.parentNode.insertBefore(wrap, firstField.nextSibling);
+    else panel.appendChild(wrap);
+    const sel = document.getElementById('v19ExtiSel');
+    if(sel) sel.addEventListener('change',()=>{
+      const v = sel.value;
+      if(v==='None') delete st.exti; else st.exti = v;
+      if(st.mode==='DEFAULT' && v!=='None'){ st.mode='INPUT'; }
+      renderPinConfig(); renderPinout(); renderPeriphPanel();
+    });
+  };
+  function v19PinNum(name){ const m=String(name).match(/\d+$/); return m? +m[0] : -1; }
+  function v19ExtiPins(){
+    const out=[];
+    Object.entries(state.pins).forEach(([pn,s])=>{
+      if(s && s.exti && !/^P[A-F]\d+$/.test(pn)) return;
+      if(s && s.exti) out.push({pin:pn, trigger:s.exti, num:v19PinNum(pn)});
+    });
+    return out.sort((a,b)=>a.num-b.num);
+  }
+
+  /* =========================================================
+     4. Timer waveform — duty slider only in PWM; encoder UX
+     ========================================================= */
+  const _v19WvHtml = window.wvHtmlBase;
+  window.wvWvHtmlHook = function(k){
+    const mode = (periphParams(k).mode)||'PWM Generation';
+    if(mode==='Encoder') return _v19EncoderHtml(k);
+    const html = _v19WvHtml(k);
+    if(mode==='Output Compare'){
+      /* OC: the per-channel value is a compare MATCH, not a duty cycle —
+         drop the duty-% label so no duty slider is implied */
+      return html.replace(/\s*<span class="duty"[^>]*>.*?<\/span>/gs, '');
+    }
+    if(mode==='Input Capture'){
+      /* IC: the pins are inputs — remove the pulse slider / polarity buttons */
+      const rows=[...html.matchAll(/<div class="wv-chan">[\s\S]*?<\/div>/g)].map(m=>m[0]);
+      const infoRows = rows.map(r=>{
+        const cn=(r.match(/<span class="cn">([\s\S]*?)<\/span>/)||[])[1]||'';
+        const cp=(r.match(/<span class="cp">([\s\S]*?)<\/span>/)||[])[1]||'';
+        return `<div class="wv-chan"><span class="cn">${cn}</span><span class="cp">${cp}</span>
+          <span style="flex:1;font-size:10.5px;color:var(--text-dim)">input — capture on rising edge</span></div>`;
+      }).join('');
+      return infoRows ? html.replace(/<div class="wv-chan">[\s\S]*?(?=<div class="wv-dt"|<div class="wv-nopins"|$)/, infoRows) : html;
+    }
+    return html;
+  };
+
+  /* Encoder card: PPR + initial counter + computed specs */
+  function _v19EncoderHtml(k){
+    if(!periphEnabled(k)) return '';
+    const p=periphParams(k);
+    const clk=window.wvTimerClkMHz(k)||32;
+    const psc=Math.max(0,+p.psc||0), arr=Math.max(0,+p.arr||999);
+    const ppr=Math.max(1, +p.ppr||1200);
+    const init=Math.max(0, Math.min(arr, +p.initcnt||0));
+    const mult=4;                        /* TI12 encoder = 4x counting */
+    const stepsPerRev=ppr*mult;
+    const maxCnt=arr+1;
+    const tickS=(psc+1)/(clk*1e6);
+    const Tp=tickS*(arr+1);
+    /* one full rev needs stepsPerRev counts; the counter holds maxCnt.
+       If stepsPerRev <= maxCnt the counter can track a full revolution:
+       time per rev = stepsPerRev * tickS  =>  maxRPM = 60/(stepsPerRev*tickS).
+       If stepsPerRev > maxCnt the counter overflows before one rev is done
+       (software must handle the overflow) — we still report the theoretical
+       mechanical RPM but flag the overflow. */
+    const fits = stepsPerRev <= maxCnt;
+    const revPerOverflow = maxCnt/stepsPerRev;
+    const maxRPM = 60/(stepsPerRev*tickS);
+    const maxHz = 1/Tp;
+    const overflowNote = fits ? '' : ` ⚠ overflow: needs ${stepsPerRev} counts/rev but counter holds only ${maxCnt} (ARR=${arr})`;
+    const chanRow = `<div class="wv-chan">
+        <span class="cn">CH1/CH2</span>
+        <span class="cp">${ (detectPeripherals()[k]||[]).map(x=>x.pin).join(' · ') || 'no pins' }</span>
+        <div style="flex:1;min-width:150px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span style="font-size:10px;color:var(--text-dim)">PPR (1..${Math.max(1,Math.floor((arr+1)/4))})</span>
+          <input class="num" id="wv-${k}-ppr" data-wv="ppr" data-k="${k}" type="text" value="${ppr}" style="width:70px" title="Allowed: 1..${Math.max(1,Math.floor((arr+1)/4))} (counts/rev ≤ ARR+1)">
+          <span style="font-size:10px;color:var(--text-dim)">init cnt</span>
+          <input class="num" id="wv-${k}-initcnt" data-wv="initcnt" data-k="${k}" type="text" value="${init}" style="width:64px" title="Allowed: 0..${arr} (≤ ARR)">
+        </div>
+      </div>`;
+    return `<div class="wv">
+      <div class="wv-head">
+        <span class="wv-title">◣ Quadrature encoder — ${k} <span class="help" tabindex="0" data-tip="Encoder (quadrature) mode: two signals 90° apart are counted ×4 (TI12). Pulses per revolution (PPR) sets how many input pulses equal one mechanical revolution; the counter counts PPR×4 steps per revolution. The initial counter value is loaded after init.">?</span></span>
+        <div class="wv-chips">
+          <span class="wv-chip">steps/rev (×4): <b id="wv-${k}-steps">${stepsPerRev}</b></span>
+          <span class="wv-chip">counter range: <b>0..${arr}</b></span>
+          <span class="wv-chip">max RPM ≈ <b id="wv-${k}-rpm">${maxRPM.toFixed(0)}</b>${fits?'':' ⚠'}</span>
+          <span class="wv-chip">count rate: <b>${maxHz>=1000?(maxHz/1000).toFixed(1)+' kHz':maxHz.toFixed(0)+' Hz'}</b></span>
+        </div>
+      </div>
+      ${(function(){ /* mini quadrature SVG */
+        const W=760,H=110,pad=12,N=3;
+        const X=t=>pad+(t/N)*(W-2*pad);
+        let s=`<svg class="wv-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+        [0,1,2,3].forEach(i=>{ const x=X(i); s+=`<line x1="${x}" y1="16" x2="${x}" y2="${H-16}" stroke="var(--border-soft)" stroke-width="0.6"/>`; });
+        const draw=(y,phase,color)=>{ let d=''; for(let p=0;p<N;p++){ const t0=p+phase/2; d+=`M ${X(t0)} ${y} L ${X(t0+0.25)} ${y} L ${X(t0+0.25)} ${y-22} L ${X(t0+0.75)} ${y-22} L ${X(t0+0.75)} ${y} L ${X(t0+1)} ${y} `; }
+          s+=`<path d="${d}" fill="none" stroke="${color}" stroke-width="2"/>`; };
+        draw(78,0,'var(--green)');   /* CH1 */
+        draw(52,0.5,'var(--blue)');  /* CH2, 90° phase */
+        s+=`<text x="${pad}" y="100" class="wv-lbl">CH1 · CH2 — quadrature ×4 (TI12)</text>`;
+        s+=`</svg>`; return s; })()}
+      ${chanRow}
+      <div class="wv-nopins" style="margin-top:6px">ℹ <b>Combined specs:</b> ${ppr} PPR × 4 = <b>${stepsPerRev} counts/rev</b>; one count = ${window.wvFmtT(tickS)} → max <b>${maxRPM.toFixed(0)} RPM</b>${overflowNote}. Counter range 0..${arr} (${revPerOverflow.toFixed(2)} rev per overflow). Set the initial counter to e.g. half the range for a signed (±) position readout.</div>
+    </div>`;
+  }
+
+  /* =========================================================
+     5. CODE GENERATION — interrupts, EXTI, encoder init
+     ========================================================= */
+  function v19EnabledTimers(){
+    const out=[];
+    Object.keys(state.periph||{}).forEach(k=>{
+      if(!/^TIM\d+$/.test(k)) return;
+      const p=periphParams(k);
+      if(p.irq==='Enabled' && periphEnabled(k)) out.push(k);
+    });
+    return out;
+  }
+  function v19EnabledUarts(){
+    const out=[];
+    Object.keys(state.periph||{}).forEach(k=>{
+      if(!/^USART\d+$/.test(k)) return;
+      if(periphParams(k).irq==='Enabled' && periphEnabled(k)) out.push(k);
+    });
+    return out;
+  }
+  function v19EnabledAdc(){ return state.periph&&state.periph.ADC&&periphParams('ADC').irq==='Enabled'&&periphEnabled('ADC'); }
+
+  function v19NvicLines(irqn, hal){
+    if(hal) return ['  HAL_NVIC_SetPriority('+irqn+', 0, 0);','  HAL_NVIC_EnableIRQ('+irqn+');'];
+    const s=serKey();
+    if(s==='HKF103'){
+      return ['  { NVIC_InitTypeDef NVIC_InitStructure;',
+        '    NVIC_InitStructure.NVIC_IRQChannel = '+irqn+';',
+        '    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;',
+        '    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;',
+        '    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;',
+        '    NVIC_Init(&NVIC_InitStructure); }'];
+    }
+    return ['  { NVIC_InitTypeDef NVIC_InitStructure;',
+      '    NVIC_InitStructure.NVIC_IRQChannel = '+irqn+';',
+      '    NVIC_InitStructure.NVIC_IRQChannelPriority = 0;',
+      '    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;',
+      '    NVIC_Init(&NVIC_InitStructure); }'];
+  }
+
+  /* build a MX_IRQ_Init() function body (NVIC + peripheral IT enables) */
+  function v19IrqInitBody(){
+    const hal=v19Hal(); const L=[]; let any=false;
+    if(!hal && serKey()==='HKF103' && (v19EnabledTimers().length||v19EnabledUarts().length||v19EnabledAdc()||v19ExtiPins().length)){
+      L.push('  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);'); any=true;
+    }
+    v19EnabledTimers().forEach(k=>{
+      const h=handleName(k); const mode=periphParams(k).mode||'PWM Generation';
+      if(mode==='Encoder') return;
+      const list=(V19_TIM_IRQ[serKey()]||{})[k]||[];
+      list.forEach(([irqn,hd])=>{ L.push(...v19NvicLines(irqn, hal)); any=true; });
+      if(!hal){
+        const itm = mode==='PWM Generation'?'TIM_IT_Update|TIM_IT_CC1':(mode==='Input Capture'?'TIM_IT_Update|TIM_IT_CC1':'TIM_IT_Update|TIM_IT_CC1');
+        L.push('  TIM_ITConfig('+k+', '+itm+', ENABLE);'); any=true;
+      }
+    });
+    v19EnabledUarts().forEach(k=>{
+      const num=k.replace(/^USART/,'');
+      const [irqn]=v19UartIrqn(k,num);
+      L.push(...v19NvicLines(irqn, hal)); any=true;
+      if(!hal){
+        const api=V19_UART_API[serKey()]||'USART';
+        L.push('  '+api+'_ITConfig('+api+num+', '+api+'_IT_RXNE, ENABLE);');
+      }
+    });
+    if(v19EnabledAdc()){
+      const list=V19_ADC_IRQ[serKey()]||[];
+      list.forEach(([irqn])=>{ L.push(...v19NvicLines(irqn, hal)); any=true; });
+      if(!hal) L.push('  ADC_ITConfig(ADC1, ADC_IT_EOC, ENABLE);');
+    }
+    v19ExtiPins().forEach(e=>{
+      const [irqn]=v19ExtiGroup(e.num);
+      L.push(...v19NvicLines(irqn, hal)); any=true;
+    });
+    return {any, lines:L};
+  }
+
+  /* MX_EXTI_Init() body */
+  function v19ExtiInitBody(){
+    const pins=v19ExtiPins(); if(!pins.length) return '';
+    const hal=v19Hal(); const L=[];
+    L.push('static void MX_EXTI_Init(void)');
+    L.push('{');
+    if(hal){
+      L.push('  GPIO_InitTypeDef GPIO_InitStruct = {0};');
+      /* group by port for the GPIO init */
+      const byPort={};
+      pins.forEach(e=>{ (byPort[e.pin[1]]=byPort[e.pin[1]]||[]).push(e); });
+      Object.keys(byPort).forEach(port=>{
+        const list=byPort[port];
+        L.push('  GPIO_InitStruct.Pin = '+list.map(e=>v19GpioPin(e.pin)).join('|')+';');
+        const trig = list[0].trigger;
+        L.push('  GPIO_InitStruct.Mode = GPIO_MODE_IT_'+(trig==='Rising'?'RISING':trig==='Falling'?'FALLING':'RISING_FALLING')+';');
+        L.push('  GPIO_InitStruct.Pull = GPIO_NOPULL;');
+        L.push('  HAL_GPIO_Init(GPIO'+port+', &GPIO_InitStruct);');
+      });
+    } else {
+      /* StdPeriph: GPIO_EXTILineConfig + EXTI_Init per line */
+      pins.forEach(e=>{
+        L.push('  GPIO_EXTILineConfig('+v19PortSource(e.pin)+', '+v19PinSource(e.pin)+');');
+      });
+      L.push('  EXTI_InitTypeDef EXTI_InitStructure;');
+      pins.forEach(e=>{
+        const trig = e.trigger;
+        L.push('  EXTI_InitStructure.EXTI_Line = '+v19ExtiLine(e.num)+';');
+        L.push('  EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;');
+        L.push('  EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_'+(trig==='Rising'?'Rising':trig==='Falling'?'Falling':'Rising_Falling')+';');
+        L.push('  EXTI_InitStructure.EXTI_LineCmd = ENABLE;');
+        L.push('  EXTI_Init(&EXTI_InitStructure);');
+      });
+    }
+    L.push('}');
+    L.push('');
+    return L.join('\n');
+  }
+
+  /* switch plain Start -> _IT for HAL when interrupt enabled */
+  function v19HalStartIT(line){
+    const s=line;
+    return s.replace(/HAL_TIM_PWM_Start\(/g,'HAL_TIM_PWM_Start_IT(')
+            .replace(/HAL_TIM_OC_Start\(/g,'HAL_TIM_OC_Start_IT(')
+            .replace(/HAL_TIM_IC_Start\(/g,'HAL_TIM_IC_Start_IT(')
+            .replace(/HAL_ADC_Start\(/g,'HAL_ADC_Start_IT(');
+  }
+
+  /* post-process the generated main.c */
+  const _v19Gen = generateCode;
+  generateCode = function(){
+    const r = _v19Gen();
+    let L = r.lines.slice();
+
+    /* 1) interrupt start calls (HAL only) */
+    if(v19Hal()){
+      v19EnabledTimers().forEach(k=>{
+        const h=handleName(k);
+        for(let i=0;i<L.length;i++){
+          if((L[i].indexOf('HAL_TIM_PWM_Start(&'+h)>=0||L[i].indexOf('HAL_TIM_OC_Start(&'+h)>=0||L[i].indexOf('HAL_TIM_IC_Start(&'+h)>=0)){
+            L[i]=v19HalStartIT(L[i]);
+          }
+        }
+      });
+      if(v19EnabledAdc()){
+        for(let i=0;i<L.length;i++){ if(L[i].indexOf('HAL_ADC_Start(&hadc)')>=0) L[i]=v19HalStartIT(L[i]); }
+      }
+    }
+
+    /* 2) NVIC init function + EXTI init function + calls in main */
+    const irq=v19IrqInitBody();
+    const extiFn=v19ExtiInitBody();
+    if(irq.any || extiFn){
+      const mi = L.findIndex(l=>/^\s*MX_GPIO_Init\(\);/.test(l));
+      if(mi>=0){
+        if(extiFn) L.splice(mi+1,0,'  MX_EXTI_Init();');
+        if(irq.any) L.splice(mi+1,0,'  MX_IRQ_Init();');
+      }
+      /* function definitions appended before Error_Handler */
+      const eh = L.findIndex(l=>/^void Error_Handler\(void\)/.test(l));
+      const block=[];
+      if(irq.any){
+        block.push('static void MX_IRQ_Init(void)','{',...irq.lines,'}','');
+      }
+      if(extiFn) block.push(extiFn);
+      /* forward declarations near the top (after SystemClock_Config prototype) */
+      const protos = (irq.any?['void MX_IRQ_Init(void);']:[]).concat(extiFn?['void MX_EXTI_Init(void);']:[]);
+      const pp = L.findIndex(l=>/^void SystemClock_Config\(void\);/.test(l));
+      if(pp>=0) L.splice(pp+1,0,...protos);
+      if(eh>=0) L.splice(eh,0,...block);
+    }
+
+    /* 3) encoder: load initial counter after init */
+    Object.keys(state.periph||{}).forEach(k=>{
+      if(!/^TIM\d+$/.test(k)) return;
+      const p=periphParams(k);
+      if(p.mode!=='Encoder' || !periphEnabled(k)) return;
+      const init=Math.max(0, Math.min((+p.arr||999), +p.initcnt||0));
+      const i=L.findIndex(l=>new RegExp('^static void MX_'+k+'_Init\\(void\\)$').test(l));
+      if(i>=0){
+        let depth=0, j=i;
+        for(;j<L.length;j++){ depth+=L[j].split('{').length-1-L[j].split('}').length+1; if(depth<=0) break; }
+        const setc = v19Hal() ? ('  __HAL_TIM_SET_COUNTER(&'+handleName(k)+', '+init+');')
+                              : ('  TIM_SetCounter('+k+', '+init+');');
+        L.splice(j,0,setc);
+      }
+    });
+
+    return {lines:L, ids:r.ids};
+  };
+
+  /* =========================================================
+     6. IT FILE — peripheral IRQ handlers
+     ========================================================= */
+  function v19ItHandlers(){
+    const hal=v19Hal(); const L=[];
+    /* timers */
+    v19EnabledTimers().forEach(k=>{
+      const mode=periphParams(k).mode||'PWM Generation';
+      if(mode==='Encoder') return;
+      const h=handleName(k);
+      const list=(V19_TIM_IRQ[serKey()]||{})[k]||[];
+      list.forEach(([irqn,hd])=>{
+        L.push('void '+hd+'(void)');
+        L.push('{');
+        if(hal){
+          L.push('  HAL_TIM_IRQHandler(&'+h+');');
+          L.push('/* USER CODE BEGIN '+hd+' */');
+          L.push('/* USER CODE END '+hd+' */');
+        } else {
+          L.push('  if(TIM_GetITStatus('+k+', TIM_IT_Update | TIM_IT_CC1) != RESET){');
+          L.push('    TIM_ClearITPendingBit('+k+', TIM_IT_Update | TIM_IT_CC1);');
+          L.push('/* USER CODE BEGIN '+hd+' */');
+          L.push('/* USER CODE END '+hd+' */');
+          L.push('  }');
+        }
+        L.push('}'); L.push('');
+      });
+    });
+    /* uarts */
+    v19EnabledUarts().forEach(k=>{
+      const num=k.replace(/^USART/,'');
+      const [irqn,hd]=v19UartIrqn(k,num);
+      const api=V19_UART_API[serKey()]||'USART';
+      L.push('void '+hd+'(void)');
+      L.push('{');
+      if(hal){
+        L.push('  HAL_UART_IRQHandler(&'+handleName(k)+');');
+        L.push('/* USER CODE BEGIN '+hd+' */');
+        L.push('/* USER CODE END '+hd+' */');
+      } else {
+        L.push('  if('+api+'_GetITStatus('+k+', '+api+'_IT_RXNE) != RESET){');
+        L.push('    '+api+'_ClearITPendingBit('+k+', '+api+'_IT_RXNE);');
+        L.push('/* USER CODE BEGIN '+hd+' */');
+        L.push('/* USER CODE END '+hd+' */');
+        L.push('  }');
+      }
+      L.push('}'); L.push('');
+    });
+    /* adc */
+    if(v19EnabledAdc()){
+      const list=V19_ADC_IRQ[serKey()]||[];
+      list.forEach(([irqn,hd])=>{
+        L.push('void '+hd+'(void)');
+        L.push('{');
+        if(hal){
+          L.push('  HAL_ADC_IRQHandler(&hadc);');
+        } else {
+          L.push('  if(ADC_GetITStatus(ADC1, ADC_IT_EOC) != RESET){');
+          L.push('    ADC_ClearITPendingBit(ADC1, ADC_IT_EOC);');
+          L.push('  }');
+        }
+        L.push('/* USER CODE BEGIN '+hd+' */');
+        L.push('/* USER CODE END '+hd+' */');
+        L.push('}'); L.push('');
+      });
+    }
+    /* EXTI */
+    const groups={};
+    v19ExtiPins().forEach(e=>{
+      const g=v19ExtiGroup(e.num); const key=g[1];
+      (groups[key]=groups[key]||[]).push({irqn:g[0], handler:g[1], line:v19ExtiLine(e.num), pin:v19GpioPin(e.pin), pinName:e.pin});
+    });
+    Object.keys(groups).forEach(hd=>{
+      const items=groups[hd];
+      L.push('void '+hd+'(void)');
+      L.push('{');
+      if(hal){
+        items.forEach(it=>{ L.push('  HAL_GPIO_EXTI_IRQHandler('+it.pin+');'); });
+        L.push('/* USER CODE BEGIN '+hd+' */');
+        L.push('/* USER CODE END '+hd+' */');
+      } else {
+        items.forEach(it=>{
+          L.push('  if(EXTI_GetITStatus('+it.line+') != RESET){');
+          L.push('    EXTI_ClearITPendingBit('+it.line+');');
+          L.push('    /* USER CODE BEGIN '+hd+' — '+it.pinName+' */');
+          L.push('    /* USER CODE END '+hd+' — '+it.pinName+' */');
+          L.push('  }');
+        });
+      }
+      L.push('}'); L.push('');
+    });
+    return L;
+  }
+
+  const _v19ItSource = window.itSourceText;
+  window.itSourceText = function(){
+    const base=_v19ItSource();
+    const h=v19ItHandlers();
+    if(!h.length) return base;
+    const L=base.split('\r\n');
+    const idx=L.findIndex(l=>/USER CODE BEGIN IRQ_HANDLERS/.test(l));
+    const ins=idx>=0?idx: L.length-1;
+    L.splice(ins,0,...h);
+    return L.join('\r\n');
+  };
+  const _v19ItHeader = window.itHeaderText;
+  window.itHeaderText = function(){
+    const base=_v19ItHeader();
+    const h=v19ItHandlers();
+    if(!h.length) return base;
+    const names=h.filter((l,i)=>/^void [A-Z0-9_]+\(void\)$/.test(l)).map(l=>l.replace(/^void /,'').replace(/\(void\)$/,''));
+    const L=base.split('\r\n');
+    const idx=L.findIndex(l=>/#endif/.test(l));
+    L.splice(idx,0,...names.map(n=>'void '+n+'(void);'),'');
+    return L.join('\r\n');
+  };
+})();
+</script>
+<script>
+/* ============================================================
+   OpenMCU Cube v1.6.0.2 — canonical database + export gate
+   This layer removes known family-level ambiguities and makes
+   unsupported / unverifiable configurations fail closed.
+   ============================================================ */
+(function(){
+  const VERSION='1.6.0.2';
+  try{ document.title='OpenMCU Cube v'+VERSION+' · HK32 / PY32 Configurator'; }catch(e){}
+
+  /* ---- canonical bus ownership: HK32F103 CAN1 is APB1 ---- */
+  try{
+    const S=SERIES && SERIES.HKF103;
+    if(S && Array.isArray(S.apbBuses)){
+      S.apbBuses.forEach(b=>{ if(b.bus==='APB1' && !b.periphs.includes('CAN1')) b.periphs.push('CAN1');
+                                if(b.bus==='APB2') b.periphs=b.periphs.filter(x=>x!=='CAN1'); });
+    }
+  }catch(e){}
+
+  /* ---- exact-part identity ----
+     A package label containing several P/Ns is deliberately marked
+     ambiguous instead of silently selecting one device identity. */
+  function partIdentity(){
+    const S=curSeries(), P=curPkg();
+    const label=String(P&&P.label||'');
+    const m=label.match(/HK32[A-Z0-9]+|PY32[A-Z0-9]+/g)||[];
+    const unique=[...new Set(m)];
+    return {series:state.series, package:state.pkg, candidates:unique, ambiguous:unique.length>1,
+            display:unique.length===1?unique[0]:label};
+  }
+
+  /* ---- exact package consistency ---- */
+  function validatePartIdentity(out){
+    const id=partIdentity();
+    if(id.ambiguous){
+      out.errors.push({code:'PART-001',severity:'error',message:'Selected package represents multiple part numbers: '+id.display+'. Select an exact package/part mapping before export.'});
+    }
+  }
+
+  /* ---- peripheral support gate ---- */
+  function validatePeripheralSupport(out){
+    const S=curSeries(), enabled=Object.entries(state.periph||{}).filter(([k,v])=>v&&v.enabled).map(([k])=>k);
+    const sdk=sdkStyle();
+    const unsupported=[];
+    /* These paths are intentionally fail-closed because the bundled generator
+       does not emit a complete device-specific initialization sequence. */
+    ['LPTIM','COMP1','COMP2','RTC'].forEach(k=>{
+      if(enabled.includes(k) && !hasInitStub(k)) unsupported.push(k);
+    });
+    if(unsupported.length){
+      out.errors.push({code:'PERIPH-001',severity:'error',message:'Peripheral(s) are selected but do not have a complete generator for '+S.label+' / '+sdk+': '+unsupported.join(', ')});
+    }
+  }
+
+  /* ---- clock/source and timer sanity ---- */
+  function validateGeneratedConfig(out){
+    const S=curSeries(), lim=S.limits||{};
+    let c={}; try{c=computeClock()||{};}catch(e){out.errors.push({code:'CLK-000',severity:'error',message:'Clock solver failed: '+e.message});return;}
+    [['sysclk','SYSCLK'],['hclk','HCLK'],['pclk','APB1'],['pclk2','APB2']].forEach(([key,name])=>{
+      const v=Number(c[key]); const max=Number(lim[name.toLowerCase()]||lim[key]);
+      if(Number.isFinite(v)&&max&&v>max+1e-6) out.errors.push({code:'CLK-'+name,severity:'error',message:name+' '+v+' MHz exceeds '+max+' MHz limit for '+S.label});
+    });
+    Object.entries(state.periph||{}).forEach(([k,v])=>{
+      if(!v||!v.enabled) return;
+      const p=v.params||{};
+      if(/^TIM\d+$/.test(k)){
+        const psc=Number(p.psc),arr=Number(p.arr),pulse=Number(p.pulse);
+        if(!Number.isInteger(psc)||psc<0) out.errors.push({code:'TIM-001',severity:'error',message:k+' PSC must be a non-negative integer'});
+        if(!Number.isInteger(arr)||arr<1) out.errors.push({code:'TIM-002',severity:'error',message:k+' ARR must be a positive integer'});
+        if(Number.isFinite(pulse)&&Number.isFinite(arr)&&pulse>arr) out.errors.push({code:'TIM-003',severity:'error',message:k+' Pulse cannot exceed ARR'});
+      }
+      if(/^USART\d+$/.test(k)||/^UART\d+$/.test(k)){
+        const baud=Number(p.baud); if(!Number.isFinite(baud)||baud<=0) out.errors.push({code:'UART-001',severity:'error',message:k+' baud rate must be positive'});
+      }
+      if(/^I2C\d+$/.test(k) && typeof v14StdI2CTiming==='function'){
+        const timing=v14StdI2CTiming(p); if(timing===null) out.errors.push({code:'I2C-001',severity:'error',message:k+' has no validated timing preset for '+Math.round(Number(c.pclk||0))+' MHz and '+String(p.speed||'100kHz')});
+      }
+      if(k==='CAN1' && typeof v14CANTiming==='function'){
+        if(!v14CANTiming()) out.errors.push({code:'CAN-001',severity:'error',message:'No valid CAN timing solution for the selected clock and bitrate'});
+      }
+    });
+  }
+
+  function validateExport102(){
+    const out={ok:true,errors:[],warnings:[],version:VERSION,part:partIdentity()};
+    try{validatePartIdentity(out);}catch(e){out.errors.push({code:'PART-000',severity:'error',message:e.message});}
+    try{validatePeripheralSupport(out);}catch(e){out.errors.push({code:'PERIPH-000',severity:'error',message:e.message});}
+    try{validateGeneratedConfig(out);}catch(e){out.errors.push({code:'GEN-000',severity:'error',message:e.message});}
+    out.ok=out.errors.length===0;
+    return out;
+  }
+
+  /* Public machine-readable API for regression harnesses. */
+  window.OpenMCUValidation=validateExport102;
+
+  /* Replace the last export gate with a fail-closed gate. */
+  const oldDownloadAll=window.downloadAll;
+  window.downloadAll=async function(){
+    const v=validateExport102();
+    if(!v.ok){
+      const msg=v.errors.map(e=>'['+e.code+'] '+e.message).join('\n');
+      try{toast('Export blocked: '+v.errors.length+' validation error(s)','err');}catch(e){}
+      alert('OpenMCU Cube '+VERSION+' — export blocked\n\n'+msg);
+      return;
+    }
+    return oldDownloadAll.apply(this,arguments);
+  };
+
+  /* Make single-file main.c export obey the same correctness gate. */
+  const oldDownloadCode=window.downloadCode;
+  window.downloadCode=function(){
+    const v=validateExport102();
+    if(!v.ok){
+      try{toast('main.c export blocked by validation','err');}catch(e){}
+      alert('OpenMCU Cube '+VERSION+' — main.c export blocked\n\n'+v.errors.map(e=>'['+e.code+'] '+e.message).join('\n'));
+      return;
+    }
+    return oldDownloadCode.apply(this,arguments);
+  };
+
+  /* Keep generated metadata self-describing. */
+  try{
+    const oldProjectSettingsObject=window.projectSettingsObject;
+    if(typeof oldProjectSettingsObject==='function'){
+      window.projectSettingsObject=function(){
+        const o=oldProjectSettingsObject.apply(this,arguments); o.toolVersion=VERSION; o.partIdentity=partIdentity(); return o;
+      };
+    }
+  }catch(e){}
+})();
+</script>
+</body>
 </html>
