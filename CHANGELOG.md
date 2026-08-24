@@ -7,7 +7,281 @@ project uses [Semantic Versioning](https://semver.org/).
 
 ---
 
-## 📜 A note on the early history
+## [1.6.0] — 2026-08-24
+
+> **Release note:** v1.5.9 was **never released publicly** — there is **no intermediate
+> v1.5.9 release** in the public release history. Everything that had been planned for that
+> intermediate version is consolidated into this release and documented below together with
+> the v1.6.0 fixes and improvements. The public release history is therefore:
+> **v1.5.8 → v1.6.0**.
+
+### Added
+
+#### ⚡ Interrupt (IRQ) support
+- Added an **Interrupt** option (`Disabled` / `Enabled`) to every supported **timer,
+  UART/USART and ADC** card.
+- Added automatic `MX_IRQ_Init()` generation with device-specific NVIC configuration and
+  the exact IRQ vector of each supported device:
+  - **PY32F030:** TIM1 → `TIM1_BRK_UP_TRG_COM` + `TIM1_CC`; TIM3/14/16/17 use their own vectors.
+  - **PY32F002A:** TIM1 and TIM16.
+  - **PY32F002B:** TIM1 and TIM14.
+  - **HK32F103:** TIM1 update/CC, TIM2/3/4 and ADC1_2.
+  - **HK32C030:** TIM1 break/update/trigger/commutation + CC, TIM2/3/14/15/16/17 and ADC.
+  - **HK32F030M / HK32F0301M:** TIM1 break + update/trigger/commutation + CC, TIM2 and ADC1.
+- HAL targets use the appropriate interrupt-start APIs: `HAL_TIM_PWM_Start_IT`,
+  `HAL_TIM_OC_Start_IT`, `HAL_TIM_IC_Start_IT`, `HAL_ADC_Start_IT`.
+- StdPeriph targets use the corresponding `TIM_ITConfig`, `USART_ITConfig`,
+  `UART_ITConfig` (HK32C030) and `ADC_ITConfig`.
+- Generated `_it.c` / `_it.h` files contain the required IRQ handlers with `USER CODE
+  BEGIN/END` blocks; Cortex-M3 targets (HK32F103) receive the NVIC priority-group
+  configuration once.
+
+#### 🔔 External interrupts (EXTI)
+- Added an **External interrupt (EXTI)** selector to GPIO pin configuration: None /
+  Rising / Falling / Rising + Falling.
+- Added generated `MX_EXTI_Init()` with GPIO interrupt mode and NVIC configuration
+  (HAL), or `GPIO_EXTILineConfig` + `EXTI_Init` (StdPeriph).
+- Added generated `EXTIx_IRQHandler` handlers with `USER CODE` blocks, using the correct
+  grouped vectors (PY32 / HK32C030) or per-line vectors (HK32F030M/0301M, HK32F103).
+
+#### 🕐 Timer Waveform Designer
+- Added a graphical, **time-based** waveform preview to every enabled timer card,
+  covering PWM Generation, Output Compare, Input Capture and Encoder.
+- Displays assigned **CHx** outputs and, where supported, complementary **CHxN** outputs.
+- Added graphical **PSC / ARR** sliders plus editable numeric fields, all synchronized
+  with the existing timer configuration.
+- Added **per-channel Pulse** controls and polarity selection; fixed the case where one
+  channel's configuration could overwrite another's.
+- **Duty-cycle** control is shown **only in PWM mode**; in Output Compare mode the value
+  is treated as a compare **match** (no misleading duty label).
+- Frequency / period can be entered directly (`1kHz`, `20k`, `0.5M`, `100Hz`, `1ms`,
+  `100us`, `20ns`) and the closest achievable PSC/ARR combination is computed
+  automatically.
+- Advanced timers expose **complementary-output and dead-time** controls (ns ⇄ DTG
+  register, timer-clock-dependent range, live zoomed edge visualization).
+- The waveform section is visible as soon as a timer is enabled, even before pins are
+  assigned, with guidance on assigning channel pins.
+- Added contextual `?` help and theme-consistent numeric inputs.
+
+#### 🔄 Encoder configuration
+- Dedicated encoder controls: **pulses per revolution (PPR)**, **initial counter value**,
+  steps per revolution (PPR × 4), counter range, and **maximum RPM before overflow**.
+- Added a quadrature waveform diagram showing the 90° phase relationship.
+- Generated code initializes the timer counter to the configured initial value using the
+  appropriate HAL or StdPeriph API.
+
+#### 🟢 PY32 device-specific support
+- PY32 devices are no longer treated as one generic STM32-compatible family; each uses
+  its own SDK behavior.
+- **PY32F002B:** correct HSE-bypass handling, `HSIDiv` configuration, PY32-specific HSI
+  calibration constants, and clock initialization per the actual PY32F002B SDK API.
+- **PY32F030 / PY32F002A:** corrected clock-source and HSI handling to match the bundled
+  vendor SDK APIs.
+
+#### 🧭 HK32F030M / HK32F0301M clock & IOMUX
+- Fixed `RCC_EXTCmd()` generation by passing the required external-clock selector
+  argument, with external-clock input selection and the corresponding GPIO/IOMUX setup.
+- Corrected special HK32F030M alternate-function cases that need vendor-specific IOMUX
+  configuration beyond a generic AF call.
+- Added BEEPER support where exposed by the device database/SDK.
+- Corrected HK32F0301M HSI/clock configuration and memory metadata (48 MHz capability
+  reflected instead of generic HK32F030M assumptions).
+
+#### 🚀 HK32F103 clock, memory & remap
+- Corrected RAM metadata to the device-supported **20 KB** value where applicable.
+- Corrected HSI-based PLL path, device-specific HSI divider and HSI28/HSI56 handling,
+  high-frequency Flash-latency, `SystemCoreClock` and SysTick initialization.
+- Timer-clock calculation now accounts for the APB-prescaler timer-clock multiplier.
+- Added device-specific F1-style GPIO remap handling for supported TIM / SPI / I2C /
+  SWJ-JTAG mappings.
+- Improved parsing of composite timer channel names such as `TIM2_CH1_ETR`.
+
+#### 🧩 HK32C030 improvements
+- Added **TIM6** to the peripheral model and generation (enable without a GPIO channel).
+- Corrected HK32C030 **UART** API usage (not STM32-style USART) across initialization,
+  clock-enable, interrupt configuration and IRQ handling.
+- Improved I2C timing generation to use the device-specific API/field model.
+- Corrected `TIM2_CH1_ETR` handling.
+
+#### 🛡 Validation & export safety
+- Added a centralized **validation gate** before source/project export; configurations
+  that fail mandatory hardware or generator validation are rejected.
+- Added stricter validation for:
+  - **Clock:** SYSCLK, HCLK, APB1, APB2.
+  - **Timer:** prescaler, ARR, PWM pulse width, encoder channel requirements,
+    complementary `CHxN` constraints.
+  - **Peripheral:** unsupported or incomplete implementations (no misleading init code).
+  - **UART:** invalid / non-positive baud rates.
+- Added stricter exact-device validation for supported HK32 configurations.
+- Added the machine-readable validation API: `window.OpenMCUValidation()`.
+
+#### 🔌 Offline / standalone operation
+- Removed the embedded Cloudflare challenge script — the standalone HTML application no
+  longer depends on that hosting-specific script.
+
+### Changed
+
+#### 🛠 GPIO generation
+- HK32 **non-F1** StdPeriph devices now generate `GPIO_Mode_OUT` + `GPIO_OType_PP` /
+  `GPIO_OType_OD`; HK32F103 retains the valid F1-style `GPIO_Mode_Out_PP` / `Out_OD`.
+- GPIO AF and vendor-specific IOMUX configuration are separated where required.
+
+#### ⏱ Clock generation
+- Clock code is less dependent on generic STM32 assumptions and follows the selected
+  vendor SDK (device-specific Flash latency, PLL, HSI/HSE, APB and timer-clock rules).
+- External-clock configurations retain the selected source instead of treating HSE as a
+  generic single input.
+
+#### 💾 Keil / ZIP generation
+- Keil projects use device-specific memory and startup metadata; HK32 memory definitions
+  were corrected where generic family values did not match the selected device.
+- ZIP generation remains **byte-aware**, preserving binary startup/driver payloads; the
+  ZIP continues to ship the full embedded driver sources, headers and startup files.
+
+#### 🔄 Project restore
+- `main.c` + `project_settings.json` restore MCU, package, pins, peripherals, clock and
+  project name; `USER CODE BEGIN/END` blocks are preserved.
+
+#### 🎨 UI
+- **Clock tree:** reworked peripheral-bus layout (spacing, bus labels, multi-bus
+  rendering, APB1/APB2), paths drawn beneath boxes, no wires crossing boxes, improved
+  LSE→RTC and APB routing.
+- **Light theme:** readable pin labels, project-name input contrast, selected-pin
+  outline, clock-pin visibility and clearly visible active clock paths.
+- **Dark theme:** improved default background contrast and overall readability.
+- **Responsive:** mobile/tablet header fixed (logo no longer wraps beneath controls);
+  waveform/configuration panels usable on small screens.
+- **Inline help:** `?` buttons for device selector, pin config, package view,
+  peripherals, clock sources, clock tree, code generation, upload zone, waveform and
+  dead-time — tooltips open **below** the button to avoid clipping.
+
+### Fixed
+- **HK32 build — `serKey is not defined`:** fixed a JavaScript scope issue affecting HK32
+  project generation; added a global `serKey()` helper so earlier HK32/Keil generator
+  modules resolve the function correctly, while preserving the internal implementation
+  used by later modules.
+- **HK32 CAN bus mapping:** corrected the canonical HK32F103 **CAN1 → APB1** mapping;
+  removed the dependency on a later runtime patch that relocated CAN1.
+- **HK32F030M:** `RCC_EXTCmd()` missing selector argument; external-clock/IOMUX
+  configurations; special AF mappings needing vendor IOMUX.
+- **HK32F103:** RAM metadata, high-frequency Flash latency, HSI28/HSI56 paths,
+  `SystemCoreClock`/SysTick assumptions, missing F1 remap generation, `TIM2_CH1_ETR`
+  parsing.
+- **HK32C030:** TIM6 visibility/generation, UART/USART API mismatches, I2C timing
+  assumptions.
+- **PY32:** clock-generation assumptions that treated distinct PY32 SDKs as one
+  STM32-compatible implementation.
+- **Timer:** conflicting duplicate `TIM_OCxInit` when CHx and CHxN are both configured;
+  per-channel Pulse overwrites; dead-time range now signal-limited.
+- **GPIO:** output-mode macro mismatch on HK32 non-F1 families.
+- **IRQ/EXTI:** wrong vectors and device-specific interrupt APIs; grouped vs per-line
+  EXTI.
+- **UI:** light-theme pin labels / selected-pin contrast / active clock-path visibility;
+  clock-tree wire/box overlap; help-tooltip clipping; mobile header.
+
+### Internal
+- Added/retained `window.OpenMCUValidation()` and the centralized export gate.
+- Version metadata updated to **1.6.0** (application badge, document title, generated
+  project metadata); the 1.6.0.x engineering sub-versions are consolidated under 1.6.0.
+- Preserved the existing SDK and Keil project-generation infrastructure.
+
+### Verification
+- All embedded JavaScript blocks pass syntax validation.
+- HK32 `serKey()` resolution was specifically verified after the fix.
+- HK32 CAN1 → APB1 mapping was verified.
+- Export validation hooks were verified.
+
+### Supported MCU families (v1.6.0)
+
+| Family | Vendor | Max core clock |
+|--------|--------|---------------:|
+| PY32F030 | Puya | 48 MHz |
+| PY32F002A | Puya | 24 MHz |
+| PY32F002B | Puya | 24 MHz |
+| HK32F030M | Hangshun | 32 MHz |
+| HK32F0301M | Hangshun | 48 MHz |
+| HK32C030 | Hangshun | 64 MHz |
+| HK32F103 | Hangshun | 120 MHz |
+
+### Validation philosophy
+- This release does **not** introduce a compiler-based self-validation system; previous
+  attempts were considered unreliable.
+- Device-specific correctness is based on the **bundled vendor SDK headers, source
+  files, startup files and device metadata**, plus explicit family-specific generation
+  paths.
+- Generated projects should still be compiled and checked in the target toolchain before
+  hardware deployment.
+
+### Documentation
+- Updated `README.md`, this `CHANGELOG.md` and the new `RELEASE_NOTES_1_6_0.md` release notes.
+- All documentation presents the release history as **v1.5.8 → v1.6.0** (no public
+  v1.5.9), with the application file `OpenMCU_Cube1_6_0.html` and the GitHub Pages path
+  `https://mrz-ir.github.io/OpenMCU-Cube/OpenMCU_Cube1_6_0.html`.
+
+---
+
+## [1.5.8] — 2026-08-19
+
+### Added
+- Timer Waveform Designer with time-based signal previews (PWM / Output Compare /
+  Input Capture / Encoder).
+- PSC/ARR graphical controls and synchronized numeric inputs; per-channel Pulse and
+  polarity; frequency/period input with automatic PSC/ARR calculation.
+- Complementary-output and dead-time controls for supported advanced timers, with live
+  dead-time visualization and DTG representation.
+- Encoder-specific controls and quadrature visualization.
+- Contextual waveform help buttons.
+
+### Fixed
+- Generated timer code no longer emits conflicting duplicate `TIM_OCxInit` calls when
+  both CHx and CHxN are assigned.
+- Waveform numeric inputs use the application's theme variables.
+
+---
+
+## Earlier versions (reconstructed — approximate)
+
+> ⚠️ These entries are reconstructed from inline code comments and may be incomplete.
+> See the original project history for details.
+
+### [1.5.7] — first public release
+- Fixed HK32 GPIO output-mode generation for non-F1 HK32 families.
+- Verified GPIO/GPIOMUX tokens against the embedded HK32 SDK headers.
+- Reworked clock-tree layout and draw order; fixed help-tooltip clipping.
+- Improved light-theme pin labels and active clock-path visibility; improved
+  mobile/tablet header layout.
+- Added light/dark theme support and inline help buttons.
+- Added README, LICENSE, `.gitignore` and public-release documentation.
+
+### [1.5.6]
+- Embedded the complete SDK payload (driver sources, headers and startup files).
+- Fixed malformed Keil `.uvprojx` generation; added missing `.c` sources and startup `.s`.
+- Added HK32 Keil DFP metadata (Device/IROM/IRAM/SVD/startup/Flash Algorithm).
+- Restored pin marking for system peripherals (MCO, EVENTOUT, IR_OUT, SWD).
+- Added byte-aware ZIP writing.
+
+### [1.5.5]
+- Internal UI release; introduced a temporary regression in system-peripheral action
+  buttons (fixed in 1.5.6).
+
+### [1.5.4]
+- Introduced full-ZIP code generation with driver sources and headers.
+- Known limitations: string-only ZIP writer and malformed HK32 `.uvprojx` (both fixed in
+  1.5.6).
+
+### v1.4 – v1.5.2
+- Added device-specific clock limits and the HK32F0301M database.
+- Added real IOMUX handling for HK32F030M / HK32F0301M.
+- Added real timer-mode generation (PWM, OC, IC, Encoder) and ADC channel configuration.
+- Added I2C timing fields for STM32F0-style StdPeriph and CAN bitrate calculation for
+  HK32F103.
+- Added APB1/APB2 limit validation with compile-time-visible warnings.
+
+### Before v1.4
+- No reliable historical changelog is available.
+
+
+### 📜 A note on the early history
 
 OpenMCU Cube was developed and ran for **several versions before 1.5.7**, but no
 proper changelog was ever kept. Two reasons:
@@ -21,160 +295,9 @@ proper changelog was ever kept. Two reasons:
    the single HTML file, and the version number was simply overwritten in place.
 
 Because of this, **there is no complete, authoritative log for versions before
-1.5.7.** The “Earlier versions” section below is a **best-effort reconstruction**
+1.5.7.** The “Earlier versions” section above is a **best-effort reconstruction**
 made from those inline code comments; it may be missing details and is approximate
 in places.
 
 **From v1.5.7 onward** the project is published on GitHub, and this changelog is
 maintained properly with every release.
-
----
-
-## [1.5.8] — 2026-08-19
-
-### Added
-- **Timer Waveform Designer** — a graphical, time-based view inside every enabled
-  timer card:
-  - **Signal preview:** shows the actual output waveform of every assigned channel
-    pin (CHx) and, for advanced timers, the complementary output (CHxN) — the X
-    axis is real time (µs/ms) and several PWM periods are drawn so the signal
-    shape is clear.
-  - **Mode-aware diagrams:** PWM Generation (multi-cycle square waves with pulse
-    markers), Output Compare (toggle at match), Input Capture (input + capture
-    markers), and Encoder (quadrature, 90° phase).
-  - **Graphic numeric control:** PSC and ARR sliders + editable boxes, and a
-    **per-channel Pulse** slider + number + High/Low polarity button. The existing
-    numeric fields in the card stay fully in sync (two-way).
-  - **Target frequency / period:** the frequency and period boxes in the card are
-    both display and input — type `1kHz`, `20k`, `0.5M`, `100Hz`, or `1ms`,
-    `100us`, `20ns` and press Enter; PSC/ARR are computed automatically for the
-    closest achievable signal.
-  - **Dead-time & complementary outputs (advanced timers only):** enable CHxN,
-    set dead-time with one slider synced to two editable boxes (time in ns ⇄ DTG
-    register 0–255), a live zoomed edge view shows the both-low dead-time gap, and
-    the DTG max range scales with the timer clock (tDTS).
-  - **Capability-aware:** only channels with an assigned pin are shown; advanced
-    features appear only for timers that actually have complementary channels
-    (e.g. TIM1, TIM16, TIM17).
-  - **Always visible once a timer is enabled:** the waveform section (with PSC/ARR
-    sliders, frequency/period boxes and, for advanced timers, dead-time) appears as
-    soon as a timer is enabled — even before pins are assigned, a guided placeholder
-    explains how to assign channel pins to see the live signal preview.
-  - **Help buttons (`?`)** on the waveform section and on the Complementary &
-    Dead-time section, with English tooltips explaining what each control does.
-- **Code generation:** per-channel Pulse values are written individually
-  (`Pulse = <pulseN>` per channel), channel + complementary output are merged into
-  a single `TIM_OCxInit`/`HAL_TIM_PWM_ConfigChannel` call (no more last-call-wins
-  overwrites), and dead-time is emitted for advanced timers:
-  - PY32 HAL: `TIM_BreakDeadTimeConfigTypeDef` + `HAL_TIMEx_ConfigBreakDeadTime` +
-    `HAL_TIMEx_PWMN_Start`.
-  - HK StdPeriph: `TIM_BDTRInitTypeDef` + `TIM_BDTRConfig` + `TIM_OutputNState`
-    + `TIM_CtrlPWMOutputs`.
-- **Theme-consistent numeric inputs:** all waveform number boxes use the app's
-  theme variables (dark/light).
-
-### Fixed
-- The generated timer code no longer emits two conflicting `TIM_OCxInit` calls
-  when both CHx and CHxN are assigned.
-
----
-
-## [1.5.7] — 2026-08-19 — first public release
-
-### Fixed
-- **HK32 GPIO output mode (build fix):** configuring a pin as GPIO Output on the
-  non-F1 HK families (**HK32F030M, HK32F0301M, HK32C030**) generated
-  `GPIO_Mode_Out_PP` / `GPIO_Mode_Out_OD`, macros that **do not exist** in those
-  StdPeriph drivers (they only define `GPIO_Mode_OUT` + a separate
-  `GPIO_OType_PP/OD` field) — the build failed with "undeclared identifier".
-  The generator now emits the correct `GPIO_Mode_OUT` + `GPIO_OType_PP/OD` pair
-  for those families, while **HK32F103** keeps its valid `GPIO_Mode_Out_PP/OD`.
-- Verified against the actual embedded driver headers that **every** `GPIO_*` /
-  `GPIOMUX_*` token emitted for HK32F030M, HK32F0301M, HK32C030 and HK32F103
-  (Input with all pull options, Output PP/OD, Alternate Function, Analog) exists
-  in the shipped SDK — no more undefined-macro build errors for GPIO config.
-- **Clock tree diagram — layout:** reworked the bottom (peripheral-bus) area so
-  labels and lines no longer overlap: larger peripheral boxes with correctly spaced
-  title/value text, bus names no longer collide with the first box, and multi-bus
-  devices (e.g. HK32F103 APB1/APB2) are stacked with dynamic spacing.
-- **Clock tree diagram — draw order:** all lines/paths are now rendered *under* the
-  boxes (in both themes) instead of on top of them. Routing was cleaned up so no
-  wire crosses a box: LSE→RTC joins via the main trunk, the second APB bus is fed
-  along a channel below the low-speed trunk and down the far left edge, and
-  peripheral connectors stop at the box top edge.
-- **Help tooltips** now open **below** the `?` button instead of above, so they are
-  no longer clipped when the button sits near the top of the page.
-- **Light theme — pin labels:** pins without a special role (and the project-name
-  input box) had text in the same color as their background and were unreadable.
-  Pin-name labels now use dark text on white boxes (reserved clock pins keep amber),
-  and the selected-pin outline is dark too.
-- **Light theme — active clock path:** the highlighted route is now clearly drawn in
-  green (the previous gray overlay made it invisible), with a thicker stroke and a
-  subtle glow.
-- **Mobile / tablet layout:** the header no longer wraps the logo below the device
-  dropdown and tabs on narrow windows — the logo stays on top down to phone sizes.
-- Darker background for better readability in the default (dark) theme.
-
-### Added
-- **Light / Dark theme toggle** in the top bar (choice is saved in `localStorage`).
-- **Inline help buttons (`?`)** with English hover tooltips for every section:
-  Device selector, Pin Configuration, Package view, Peripherals, Clock sources,
-  Clock tree, Code generation, and the Upload zone. Each tooltip explains what its
-  section does.
-- The code-generation panel's help text now summarizes how to continue editing a
-  previous project (upload `main.c` + `project_settings.json`), the hint under the
-  generated code explains the per-series code style (HAL vs StdPeriph) and the ZIP
-  contents, and the footer carries the full official disclaimer.
-
-### Changed
-- Version bumped to **1.5.7** everywhere (badge, generated-code headers, document
-  title, ZIP/uvprojx metadata).
-- This is the first version prepared for **public release on GitHub** (README,
-  LICENSE, .gitignore and this changelog added).
-
----
-
-## Earlier versions (reconstructed — approximate)
-
-> ⚠️ These entries are reconstructed from inline code comments and may be
-> incomplete. See “A note on the early history” above.
-
-### [1.5.6]
-- **Full SDK payload embedded** — the single-file app now carries driver *sources*,
-  headers *and* startup files; the generated ZIP ships a complete project instead
-  of headers only.
-- **Keil (.uvprojx) build fix** — repaired malformed XML that made uVision report
-  the project as corrupt, and added the missing `.c` sources / startup `.s`.
-  Verified by actually compiling and linking a generated project with an ARM
-  toolchain.
-- **Verified HK32 Keil DFP backend** — the generator uses exact Device / IROM /
-  IRAM, SVD, startup and Flash-Algorithm data taken from the official HKMicroChip
-  `.PACK` files.
-- **Pin marking for SYSTEM peripherals** — restored the “Mark Pins” action for
-  MCO, EVENTOUT, IR_OUT and SWD (regression from 1.5.5).
-- **Byte-aware ZIP writer** — ZIP entries can now carry raw bytes, not just strings.
-
-### [1.5.5]
-- Internal UI release.
-- Introduced a regression: the peripheral card only rendered action buttons for
-  non-`auto` peripherals, so System-group peripherals (MCO, EVENTOUT, IR_OUT, SWD)
-  could not be pin-marked (fixed in 1.5.6).
-
-### [1.5.4]
-- First full-ZIP code generation (drivers + headers).
-- Known limitations at this version: the ZIP writer handled strings only, and the
-  HK32 `.uvprojx` generator emitted malformed XML (both fixed in 1.5.6).
-
-### v1.4 – v1.5.2 (hardening)
-- Device-specific clock limits and the **HK32F0301M** database.
-- Real IOMUX handling for HK32F030M / HK32F0301M.
-- Real TIM mode generation (PWM / OC / IC / Encoder).
-- Real ADC channel configuration.
-- I2C timing fields for STM32F0-style StdPeriph.
-- CAN bitrate calculation for HK32F103.
-- APB1 / APB2 limit validation with compile-time-visible warnings instead of fake
-  values.
-
-### Before v1.4
-- Not documented, even in code comments — nothing reliable is known about these
-  versions.
