@@ -12,7 +12,7 @@
 
 **Pinout · Clock tree · Code generation — in a single offline HTML file.**
 
-[![Version](https://img.shields.io/badge/version-1.5.8-33d6c0?style=flat-square)](OpenMCU_Cube1_5_8.html)
+[![Version](https://img.shields.io/badge/version-1.6.0-33d6c0?style=flat-square)](OpenMCU_Cube.html)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green?style=flat-square)](LICENSE)
 [![No dependencies](https://img.shields.io/badge/dependencies-none-5b8def?style=flat-square)](#-getting-started)
 [![Works offline](https://img.shields.io/badge/works-offline-5fc98d?style=flat-square)](#-getting-started)
@@ -46,6 +46,8 @@
 | 🧩 **Pinout & Configuration** | Interactive package view with click-to-configure pins: GPIO input/output, alternate functions, analog roles, conflict detection and suggested-pin highlighting. |
 | ⏱ **Clock Configuration** | Enable HSI / HSE / LSI / LSE / PLL, choose the SYSCLK source and AHB/APB prescalers, with a **live block diagram** that highlights the active path and warns when a limit is exceeded. |
 | 🕐 **Timer Waveform Designer** | Time-based signal preview of every assigned channel (incl. complementary outputs), graphic PSC/ARR/per-channel-Pulse editing, **target frequency/period auto-compute**, and **dead-time (ns ⇄ DTG)** for advanced timers. |
+| ⚡ **Interrupts & EXTI** | Enable **interrupts** on timers / UART / ADC and **external interrupts (EXTI)** on any pin — NVIC setup and IRQ handlers are generated per chip. |
+| 🛡 **Validation & export safety** | Centralized validation gate rejects invalid clock/timer/peripheral/UART configurations before export; machine-readable `OpenMCUValidation()` API. |
 | 📟 **Code Generation** | HAL-style code for PY32 devices, StdPeriph-style code for HK devices. Download `main.c` or a full ZIP (drivers + startup + **ready-to-open Keil uVision project**). |
 | 🔄 **Project restore** | Upload a previous `main.c` to keep your `USER CODE` blocks, or add `project_settings.json` to restore pins, peripherals, clock settings and the project name. |
 | 🌗 **Light / Dark theme** | One-click theme toggle, remembered between sessions. |
@@ -56,6 +58,8 @@
 ![Clock configuration — dark theme](docs/screenshot-clock-dark.png)
 
 ![Timer Waveform Designer](docs/screenshot-timer-waveform.png)
+
+![Timer interrupts & EXTI](docs/screenshot-timer-irq.png)  ·  ![Encoder designer](docs/screenshot-encoder.png)
 
 ![Inline help tooltip — dark theme](docs/screenshot-tooltip.png)
 
@@ -83,7 +87,7 @@ Generated code targets the matching vendor SDK for each family:
 
 ## 🚀 Getting started
 
-1. **Download** [`OpenMCU_Cube1_5_8.html`](OpenMCU_Cube1_5_8.html) (or the latest release from the [Releases](https://github.com/mrz-ir/OpenMCU-Cube/releases) page).
+1. **Download** [`OpenMCU_Cube.html`](OpenMCU_Cube.html) (or the latest release from the [Releases](https://github.com/mrz-ir/OpenMCU-Cube/releases) page).
 2. **Double-click it** — it opens in your browser. No installation, no internet connection needed.
 3. Pick your **Device** in the top bar, configure **pins → clocks**, then generate **code**.
 
@@ -107,11 +111,16 @@ Generated code targets the matching vendor SDK for each family:
 - Choose the **SYSCLK source** and the **AHB / APB prescalers**.
 - The computed clock list and the block diagram update live — a block turns **red** when a value exceeds the series limit.
 
+### Interrupts & EXTI
+- Open a **timer / UART / ADC** card and set **Interrupt → Enabled** — the code gets NVIC enable (`MX_IRQ_Init`) and the IRQ handler appears in `_it.c` with a `USER CODE` block.
+- Select a **GPIO pin** and choose **External interrupt (EXTI)** (Rising / Falling / Both) — `MX_EXTI_Init` and the `EXTIx_IRQHandler` are generated.
+
 ### Timer Waveform Designer (in the Pinout & Configuration tab)
 - Enable a timer (e.g. TIM1, TIM3) and assign its channel pins — a **waveform section** appears inside the timer card.
 - **PSC / ARR** sliders and boxes, and a **per-channel Pulse** slider + High/Low polarity.
 - The **Frequency / Period** boxes show the current value; type a target (e.g. `20k`, `100us`) and press **Enter** to auto-compute PSC/ARR.
 - **Advanced timers** (e.g. TIM1) show **Complementary & Dead-time**: enable CHxN, set dead-time in **ns ⇄ DTG** with a live zoomed edge view.
+- **Encoder mode** has dedicated controls: pulses/rev (PPR), initial counter, steps/rev, counter range and max RPM.
 
 ### Tab 3 — Code Generation
 - Review the generated `main.c`, then **Copy**, **Download main.c**, or **Download all files (ZIP)**.
@@ -135,6 +144,8 @@ LICENSE                  ← MIT license
 CHANGELOG.md             ← version history (maintained from v1.5.7 on)
 CONTRIBUTING.md          ← how to contribute
 SECURITY.md              ← how to report vulnerabilities
+DEVELOPER_GUIDE.md       ← developer guide for adding new chips (FA)
+DEVELOPER_GUIDE_EN.md    ← developer guide (EN)
 ```
 
 ---
@@ -143,7 +154,7 @@ SECURITY.md              ← how to report vulnerabilities
 
 The whole application is **one self-contained HTML file** (HTML + CSS + JavaScript, including the embedded vendor SDK payloads). Working on it is intentionally simple:
 
-1. Open `OpenMCU_Cube.html` in any text editor.
+1. Open `OpenMCU_Cube1_6_0.html` in any text editor.
 2. Edit, then refresh the browser tab to test — no build step.
 3. Before committing:
    - bump the version (badge in the top bar, document title, generated-code headers);
@@ -156,7 +167,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first — it covers how to open issues, submit pull requests, and where the device databases live inside the file.
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) first — it covers how to open issues, submit pull requests, and where the device databases live inside the file. To add a new chip family, see [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md).
 
 ---
 
