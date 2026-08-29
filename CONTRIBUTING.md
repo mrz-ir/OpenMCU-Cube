@@ -31,7 +31,7 @@ Before opening an issue:
 A good issue looks like:
 
 ```
-**Version:** 1.5.7
+**Version:** 1.6.1
 **Device:** HK32F103 LQFP48
 **Browser:** Chrome 126 (Windows)
 
@@ -53,7 +53,7 @@ use case helps a lot — e.g. "support the PY32F002B SOP14 package" is clearer w
 ## Submitting changes (pull requests)
 
 1. **Fork** the repository and create a branch: `git checkout -b fix/clock-labels`.
-2. Make your change **directly in `OpenMCU_Cube.html`** (there is no build step).
+2. Make your change **directly in `OpenMCU_Cube1_6_1.html`** (there is no build step).
 3. **Update the version number** in the file if the change is user-visible:
    - the `v1.x.y` badge in the top bar (both static HTML and the JS `setTimeout`
      badge updates),
@@ -102,7 +102,7 @@ Before submitting, please verify at least:
 
 1. Update the version in the file (see above) and `CHANGELOG.md`.
 2. Run the testing checklist.
-3. Tag the release: `git tag v1.5.8 && git push --tags`.
+3. Tag the release: `git tag v1.6.1 && git push --tags`.
 4. Create a **GitHub Release** and attach the HTML file as an asset.
 5. (Optional) if GitHub Pages is enabled, the new version goes live automatically
    once merged to `main`.
