@@ -129,6 +129,15 @@ main{max-width:1440px;margin:0 auto;padding:24px;}
 
 /* ---------- chip diagram ---------- */
 .chipwrap{display:flex;flex-direction:column;align-items:center;gap:14px;}
+.chip-zoom-shell{position:relative;width:100%;}
+.chip-zoom-toolbar{position:absolute;top:8px;right:8px;z-index:20;display:flex;align-items:center;gap:2px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:3px;box-shadow:0 4px 14px rgba(0,0,0,.35);}
+.chip-zoom-btn{background:transparent;border:none;color:var(--text);width:28px;height:28px;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:.15s;}
+.chip-zoom-btn:hover{background:var(--panel);color:var(--green);}
+.chip-zoom-btn.chip-zoom-reset{width:auto;padding:0 9px;font-size:11px;font-family:var(--mono);}
+.chip-zoom-viewport{width:100%;height:440px;overflow:hidden;border-radius:10px;position:relative;cursor:grab;touch-action:none;background:radial-gradient(circle at center,rgba(255,255,255,.02),transparent 70%);}
+.chip-zoom-viewport.grabbing{cursor:grabbing;}
+.chip-zoom-viewport svg.chip{width:100%;height:100%;max-width:none;position:absolute;top:0;left:0;transform-origin:50% 50%;will-change:transform;}
+@media (max-width:640px){ .chip-zoom-viewport{height:340px;} }
 svg.chip{width:100%;height:auto;max-width:640px;user-select:none;}
 .pinbox{cursor:pointer;transition:filter .1s;}
 .pinbox:hover rect.pin{filter:brightness(1.4);}
@@ -182,6 +191,69 @@ rect.body{fill:#1d2a21;stroke:#56695a;stroke-width:1.5;}
 /* ---------- peripheral settings panel ---------- */
 .pgroup{margin-bottom:20px;}
 .pgroup-title{font-size:12.5px;font-weight:700;color:var(--text-dim);letter-spacing:1px;border-bottom:1px dashed var(--border);padding-bottom:6px;margin-bottom:10px;text-align:left;}
+.periph-filterbar{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+.periph-search-wrap{position:relative;max-width:420px;}
+.periph-search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-dim);font-size:14px;pointer-events:none;}
+.periph-search{width:100%;padding:9px 34px 9px 34px;border-radius:8px;border:1px solid var(--border);background:var(--panel-2);color:var(--text-bright);font-size:13px;direction:ltr;text-align:left;}
+.periph-search:focus{outline:none;border-color:var(--green);}
+.periph-search-clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:13px;padding:4px 6px;display:inline-flex;}
+.periph-search-clear:hover{color:var(--red);}
+.periph-groupchips{display:flex;flex-wrap:wrap;gap:6px;}
+.periph-chip{background:var(--panel-2);border:1px solid var(--border);color:var(--text-dim);padding:5px 11px;border-radius:20px;font-size:11.5px;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap;}
+.periph-chip:hover{border-color:var(--green-dim);color:var(--text);}
+.periph-chip.active{background:var(--green);border-color:var(--green);color:#04211d;}
+.periph-chip-count{opacity:.7;font-weight:400;}
+.periph-nomatch{display:flex;flex-direction:column;align-items:center;gap:10px;padding:34px 10px;color:var(--text-dim);font-size:13px;text-align:center;}
+.periph-nomatch .big{font-size:26px;opacity:.5;}
+
+/* ---- device select button + generic modal shell ---- */
+.device-select-btn{display:inline-flex;align-items:center;gap:8px;background:var(--panel-2);border:1px solid var(--border);color:var(--text-bright);padding:7px 12px;border-radius:8px;font-size:12.5px;font-weight:600;font-family:var(--mono);cursor:pointer;transition:.15s;max-width:320px;}
+.device-select-btn:hover{border-color:var(--green);}
+.device-select-caret{color:var(--text-dim);font-size:10px;}
+.modal-backdrop{position:fixed;inset:0;background:rgba(4,8,6,.72);backdrop-filter:blur(3px);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);max-width:720px;width:100%;max-height:86vh;display:flex;flex-direction:column;overflow:hidden;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border-soft);flex:0 0 auto;}
+.modal-header h2{margin:0;font-size:16px;color:var(--text-bright);}
+.modal-close{background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:4px 8px;border-radius:6px;}
+.modal-close:hover{background:var(--panel-2);color:var(--red);}
+.modal-body,.device-modal-body{padding:16px 20px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;}
+.device-filter-row{display:flex;flex-wrap:wrap;gap:18px;}
+.device-filter-group{display:flex;flex-direction:column;gap:6px;}
+.device-filter-label{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);}
+.device-modal-list{display:flex;flex-direction:column;gap:16px;}
+.device-fam-group{display:flex;flex-direction:column;gap:8px;}
+.device-fam-title{font-size:12px;font-weight:700;color:var(--text-dim);letter-spacing:.5px;display:flex;align-items:center;gap:8px;}
+.device-fam-title .fam-vendor{font-weight:400;font-size:10.5px;opacity:.7;text-transform:uppercase;}
+.device-card{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--border);background:var(--panel-2);border-radius:9px;padding:10px 14px;cursor:pointer;transition:.15s;text-align:left;}
+.device-card:hover{border-color:var(--green);}
+.device-card.current{border-color:var(--green);background:#123528;}
+.device-card-name{font-family:var(--mono);font-size:13px;color:var(--text-bright);font-weight:600;}
+.device-card-sub{font-size:11px;color:var(--text-dim);margin-top:2px;}
+.device-card-badge{font-size:10px;color:var(--green);font-weight:700;white-space:nowrap;}
+.output-item{display:flex;align-items:flex-start;gap:12px;border:1px solid var(--border);background:var(--panel-2);border-radius:9px;padding:12px 14px;cursor:pointer;transition:.15s;}
+.output-item:hover{border-color:var(--green-dim);}
+.output-item input[type="checkbox"]{margin-top:3px;cursor:pointer;flex:0 0 auto;width:16px;height:16px;accent-color:var(--green);}
+.output-item-name{font-family:var(--mono);font-size:13px;color:var(--text-bright);font-weight:600;}
+.output-item-desc{font-size:11.5px;color:var(--text-dim);margin-top:3px;line-height:1.5;}
+.irq-prio-list{display:flex;flex-direction:column;gap:6px;}
+.irq-prio-row{display:flex;align-items:center;gap:10px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;}
+.irq-prio-row.dragging{opacity:.4;}
+.irq-prio-row.drag-over{border-color:var(--green);}
+.irq-prio-handle{cursor:grab;color:var(--text-dim);font-size:14px;flex:0 0 auto;}
+.irq-prio-badge{flex:0 0 auto;background:var(--panel);border:1px solid var(--border);color:var(--green);font-family:var(--mono);font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;}
+.irq-prio-name{flex:1 1 auto;font-family:var(--mono);font-size:12.5px;color:var(--text-bright);}
+.irq-prio-arrows{display:flex;gap:2px;flex:0 0 auto;}
+.irq-prio-arrows button{background:none;border:1px solid var(--border);color:var(--text-dim);width:22px;height:22px;border-radius:5px;font-size:9px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;}
+.irq-prio-arrows button:hover:not(:disabled){color:var(--green);border-color:var(--green-dim);}
+.irq-prio-arrows button:disabled{opacity:.3;cursor:not-allowed;}
+.history-toolbar{display:flex;align-items:center;gap:4px;background:var(--panel-2);border:1px solid var(--border);border-radius:8px;padding:3px;}
+.hist-btn{background:transparent;border:none;color:var(--text);width:30px;height:30px;border-radius:6px;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:.15s;}
+.hist-btn:hover:not(:disabled){background:var(--panel);color:var(--green);}
+.hist-btn:disabled{opacity:.35;cursor:not-allowed;}
+.hist-menu-wrap{position:relative;}
+.hist-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--panel);border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:400;min-width:170px;overflow:hidden;}
+.hist-menu button{display:block;width:100%;text-align:left;background:none;border:none;color:var(--text);padding:9px 12px;font-size:12.5px;cursor:pointer;white-space:nowrap;}
+.hist-menu button:hover{background:var(--panel-2);color:var(--red);}
 .periphcard{border:1px solid var(--border);border-radius:10px;padding:14px 16px;background:var(--panel-2);margin-bottom:12px;transition:border-color .2s;}
 .periphcard.on{border-color:#245a55;}
 .phead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
@@ -303,9 +375,9 @@ pre#codeout{
   opacity:0;visibility:hidden;transition:opacity .15s,visibility .15s;pointer-events:none;white-space:normal;
 }
 .help:hover::after,.help:focus::after,.help:focus-visible::after{opacity:1;visibility:visible;}
-html[data-theme="light"] .help::after{background:#ffffff;color:#26322b;border-color:#c9d6cc;box-shadow:0 8px 26px rgba(30,45,36,.25);}
+html[data-mode="light"] .help::after{background:#ffffff;color:#26322b;border-color:#c9d6cc;box-shadow:0 8px 26px rgba(30,45,36,.25);}
 
-/* ---------- theme toggle button ---------- */
+/* ---------- theme picker ---------- */
 .theme-btn{
   background:var(--panel-2);border:1px solid var(--border);color:var(--text-bright);
   width:34px;height:34px;border-radius:8px;flex:0 0 auto;display:inline-flex;
@@ -313,10 +385,17 @@ html[data-theme="light"] .help::after{background:#ffffff;color:#26322b;border-co
   transition:border-color .15s,background .15s;
 }
 .theme-btn:hover{border-color:var(--green);}
-.theme-btn .sun{display:inline;}
-.theme-btn .moon{display:none;}
-html[data-theme="light"] .theme-btn .sun{display:none;}
-html[data-theme="light"] .theme-btn .moon{display:inline;}
+.theme-picker-wrap{position:relative;flex:0 0 auto;}
+.theme-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--panel);border:1px solid var(--border);border-radius:9px;box-shadow:0 10px 30px rgba(0,0,0,.4);z-index:400;min-width:150px;overflow:hidden;padding:4px;}
+.theme-menu button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;border-radius:6px;color:var(--text);padding:8px 10px;font-size:12.5px;cursor:pointer;white-space:nowrap;}
+.theme-menu button:hover{background:var(--panel-2);}
+.theme-menu button.active{color:var(--green);font-weight:600;}
+.theme-menu button.active::after{content:'✓';margin-left:auto;font-weight:700;}
+.theme-swatch{width:16px;height:16px;border-radius:50%;flex:0 0 auto;border:1px solid rgba(120,120,120,.35);}
+.sw-dark{background:linear-gradient(135deg,#05090c 50%,#5fc98d 50%);}
+.sw-light{background:linear-gradient(135deg,#eef1ee 50%,#158a4e 50%);}
+.sw-midnight{background:linear-gradient(135deg,#070b14 50%,#57cf9e 50%);}
+.sw-paper{background:linear-gradient(135deg,#f6f1e6 50%,#1c8a4e 50%);}
 
 /* ---------- light theme ---------- */
 html[data-theme="light"]{
@@ -339,49 +418,93 @@ html[data-theme="light"]{
   --green-dim:#2f7d5c;
   --red:#c04553;
 }
-html[data-theme="light"] header{background:rgba(248,251,249,.95);}
-html[data-theme="light"] pre#codeout{background:#f7faf8;color:#26332c;}
-html[data-theme="light"] .kw{color:#3d6fd8;}
-html[data-theme="light"] .tp{color:#0f8d7d;}
-html[data-theme="light"] .cm{color:#64746a;}
-html[data-theme="light"] .str{color:#b5791f;}
-html[data-theme="light"] .ctxbar{background:#e6eef8;border-color:#9db6d8;}
-html[data-theme="light"] .toast{background:#e4f5ec;color:#158a4e;border-color:#7fbf9d;}
-html[data-theme="light"] .toast.err{background:#fdeaea;color:#c04553;border-color:#d8909a;}
-html[data-theme="light"] .warnbox{background:#fdf4e2;border-color:#d8b06a;color:#8a5d1d;}
-html[data-theme="light"] .warnbox.errbox{background:#fdeaea;border-color:#d8909a;color:#a53442;}
-html[data-theme="light"] .freebox{background:#fdf7e6;border-color:#d4ab63;color:#8a5d1d;}
-html[data-theme="light"] .ownerbox{background:#e2f3ea;border-color:#7fbf9d;color:#11643c;}
-html[data-theme="light"] .role.ok{background:#e3f3ea;}
-html[data-theme="light"] .role.ok i{color:#0f7a42;}
-html[data-theme="light"] .role.warn{background:#fbf0da;}
-html[data-theme="light"] .role.err{background:#fdeaea;}
-html[data-theme="light"] .role.blocked{background:#fde3e6;}
-html[data-theme="light"] .pbadge.ok{background:#d9efe2;color:#0f7a42;}
-html[data-theme="light"] .pbadge.warn{background:#f7e8cf;color:#8a5d1d;}
-html[data-theme="light"] .pbadge.off{background:#e3e8f0;color:#5b6a60;}
-html[data-theme="light"] .toggle{background:#c9d4cc;}
-html[data-theme="light"] .toggle::after{background:#5f6f64;}
-html[data-theme="light"] .toggle.on{background:var(--green-dim);}
-html[data-theme="light"] .toggle.on::after{background:#158a4e;}
-html[data-theme="light"] .swatch.ring{border-color:#5b6a60;}
-html[data-theme="light"] .pin1dot{fill:#c46a2a;}
+
+/* ---------- new dark theme: Midnight (cool blue-slate) ---------- */
+html[data-theme="midnight"]{
+  --bg:#070b14;
+  --panel:#0d1526;
+  --panel-2:#121d33;
+  --border:#33415c;
+  --border-soft:#1c2740;
+  --text:#d3dced;
+  --text-dim:#8592ab;
+  --text-bright:#f2f5fb;
+  --cyan:#3ec5e8;
+  --cyan-dim:#1f8aa8;
+  --amber:#f0b74a;
+  --orange:#ff9a52;
+  --orange-dim:#d67a3a;
+  --blue:#6d93ff;
+  --magenta:#e07bc4;
+  --green:#57cf9e;
+  --green-dim:#2f8064;
+  --red:#ef6478;
+}
+
+/* ---------- new light theme: Paper (warm parchment) ---------- */
+html[data-theme="paper"]{
+  --bg:#f6f1e6;
+  --panel:#fffcf5;
+  --panel-2:#f3ecdc;
+  --border:#d8c9a8;
+  --border-soft:#e8dcc2;
+  --text:#3a2f22;
+  --text-dim:#7a6b53;
+  --text-bright:#211a10;
+  --cyan:#0e8f7a;
+  --cyan-dim:#16705f;
+  --amber:#b8791b;
+  --orange:#c05f1f;
+  --orange-dim:#9c4c19;
+  --blue:#3f66c9;
+  --magenta:#a1447e;
+  --green:#1c8a4e;
+  --green-dim:#2c6b4a;
+  --red:#bb3f4a;
+}
+html[data-mode="light"] header{background:rgba(248,251,249,.95);}
+html[data-mode="light"] pre#codeout{background:#f7faf8;color:#26332c;}
+html[data-mode="light"] .kw{color:#3d6fd8;}
+html[data-mode="light"] .tp{color:#0f8d7d;}
+html[data-mode="light"] .cm{color:#64746a;}
+html[data-mode="light"] .str{color:#b5791f;}
+html[data-mode="light"] .ctxbar{background:#e6eef8;border-color:#9db6d8;}
+html[data-mode="light"] .toast{background:#e4f5ec;color:#158a4e;border-color:#7fbf9d;}
+html[data-mode="light"] .toast.err{background:#fdeaea;color:#c04553;border-color:#d8909a;}
+html[data-mode="light"] .warnbox{background:#fdf4e2;border-color:#d8b06a;color:#8a5d1d;}
+html[data-mode="light"] .warnbox.errbox{background:#fdeaea;border-color:#d8909a;color:#a53442;}
+html[data-mode="light"] .freebox{background:#fdf7e6;border-color:#d4ab63;color:#8a5d1d;}
+html[data-mode="light"] .ownerbox{background:#e2f3ea;border-color:#7fbf9d;color:#11643c;}
+html[data-mode="light"] .role.ok{background:#e3f3ea;}
+html[data-mode="light"] .role.ok i{color:#0f7a42;}
+html[data-mode="light"] .role.warn{background:#fbf0da;}
+html[data-mode="light"] .role.err{background:#fdeaea;}
+html[data-mode="light"] .role.blocked{background:#fde3e6;}
+html[data-mode="light"] .pbadge.ok{background:#d9efe2;color:#0f7a42;}
+html[data-mode="light"] .pbadge.warn{background:#f7e8cf;color:#8a5d1d;}
+html[data-mode="light"] .pbadge.off{background:#e3e8f0;color:#5b6a60;}
+html[data-mode="light"] .toggle{background:#c9d4cc;}
+html[data-mode="light"] .toggle::after{background:#5f6f64;}
+html[data-mode="light"] .toggle.on{background:var(--green-dim);}
+html[data-mode="light"] .toggle.on::after{background:#158a4e;}
+html[data-mode="light"] .swatch.ring{border-color:#5b6a60;}
+html[data-mode="light"] .pin1dot{fill:#c46a2a;}
 /* diagrams: light surfaces, dark labels */
-html[data-theme="light"] rect.body{fill:#dde8e1 !important;stroke:#8ba294 !important;}
+html[data-mode="light"] rect.body{fill:#dde8e1 !important;stroke:#8ba294 !important;}
 /* pin bodies keep their dark mode colors (colored chips with light text) — numbers must stay light */
-html[data-theme="light"] .chiplabel{fill:#5b6a60 !important;}
-html[data-theme="light"] .pinlabel{fill:#ffffff !important;}
-html[data-theme="light"] .pinlbl{fill:#1c2b23 !important;}
-html[data-theme="light"] .pinlbl.res{fill:#b5791f !important;}
+html[data-mode="light"] .chiplabel{fill:#5b6a60 !important;}
+html[data-mode="light"] .pinlabel{fill:#ffffff !important;}
+html[data-mode="light"] .pinlbl{fill:#1c2b23 !important;}
+html[data-mode="light"] .pinlbl.res{fill:#b5791f !important;}
 /* selected pin outline/ring must be visible on light backgrounds */
-html[data-theme="light"] svg.chip rect[stroke="#f4f8f3"]{stroke:#17221c !important;}
-html[data-theme="light"] .ckbox{fill:#e5ede7 !important;stroke:#7f9789 !important;}
-html[data-theme="light"] .cktitle{fill:#2c3d34 !important;}
-html[data-theme="light"] .ckval.dim{fill:#64746a !important;}
-html[data-theme="light"] .clkpath{stroke:#94a89a;}
-html[data-theme="light"] .clkpath.active{stroke:#0e7a44;stroke-width:2.6;filter:drop-shadow(0 0 1.5px rgba(14,122,68,.6));}
-html[data-theme="light"] .ckbox.warn{stroke:#c04553 !important;}
-html[data-theme="light"] .ckbox.active{stroke:#2f7d5c !important;}
+html[data-mode="light"] svg.chip rect[stroke="#f4f8f3"]{stroke:#17221c !important;}
+html[data-mode="light"] .ckbox{fill:#e5ede7 !important;stroke:#7f9789 !important;}
+html[data-mode="light"] .cktitle{fill:#2c3d34 !important;}
+html[data-mode="light"] .ckval.dim{fill:#64746a !important;}
+html[data-mode="light"] .clkpath{stroke:#94a89a;}
+html[data-mode="light"] .clkpath.active{stroke:#0e7a44;stroke-width:2.6;filter:drop-shadow(0 0 1.5px rgba(14,122,68,.6));}
+html[data-mode="light"] .ckbox.warn{stroke:#c04553 !important;}
+html[data-mode="light"] .ckbox.active{stroke:#2f7d5c !important;}
 
 footer{max-width:1440px;margin:10px auto 40px;padding:0 24px;color:var(--text-dim);font-size:11.5px;line-height:1.9;}
 footer a{color:var(--text-dim);text-decoration:underline;}
@@ -433,17 +556,24 @@ svg text{font-family:var(--mono);}
 .wv-lbl.green{fill:var(--green);}
 .wv-lbl.mag{fill:var(--magenta);}
 .wv-lbl.blue{fill:var(--blue);}
-html[data-theme="light"] .wv-lbl{fill:#26322b;}
-html[data-theme="light"] .wv-lbl.dim{fill:#5b6a60;}
-html[data-theme="light"] .wv-lbl.amber{fill:#b5791f;}
-html[data-theme="light"] .wv-lbl.green{fill:#0e7a44;}
-html[data-theme="light"] .wv-lbl.mag{fill:#a04f88;}
-html[data-theme="light"] .wv-lbl.blue{fill:#3d6fd8;}
+html[data-mode="light"] .wv-lbl{fill:#26322b;}
+html[data-mode="light"] .wv-lbl.dim{fill:#5b6a60;}
+html[data-mode="light"] .wv-lbl.amber{fill:#b5791f;}
+html[data-mode="light"] .wv-lbl.green{fill:#0e7a44;}
+html[data-mode="light"] .wv-lbl.mag{fill:#a04f88;}
+html[data-mode="light"] .wv-lbl.blue{fill:#3d6fd8;}
 </style>
 </head>
 <body>
 <script>
-(function(){var t='dark';try{t=localStorage.getItem('omcu-theme')||'dark';}catch(e){}document.documentElement.setAttribute('data-theme',t);})();
+(function(){
+  var THEME_MODE={dark:'dark',light:'light',midnight:'dark',paper:'light'};
+  var t='dark';
+  try{ t=localStorage.getItem('omcu-theme')||'dark'; }catch(e){}
+  if(!THEME_MODE[t]) t='dark';
+  document.documentElement.setAttribute('data-theme',t);
+  document.documentElement.setAttribute('data-mode',THEME_MODE[t]);
+})();
 </script>
 
 <header>
@@ -455,11 +585,31 @@ html[data-theme="light"] .wv-lbl.blue{fill:#3d6fd8;}
     </nav>
     <div class="selectgroup">
       <label>Device <span class="help" tabindex="0" data-tip="Device selector — picks the MCU family and package (e.g. PY32F030 TSSOP20, HK32F103 LQFP48). Everything below is device-specific: pin maps, available peripherals, and clock limits. Switching the device resets current pin assignments.">?</span></label>
-      <select class="pkgselect" id="pkgSelect"></select>
+      <select class="pkgselect" id="pkgSelect" style="display:none" aria-hidden="true" tabindex="-1"></select>
+      <button type="button" class="device-select-btn" id="deviceSelectBtn" title="Change device">
+        <span id="deviceSelectLabel">—</span><span class="device-select-caret">▾</span>
+      </button>
     </div>
-    <button class="theme-btn" id="themeToggle" title="Toggle light / dark theme" aria-label="Toggle light / dark theme">
-      <span class="sun">☀️</span><span class="moon">🌙</span>
-    </button>
+    <div class="history-toolbar" id="historyToolbar">
+      <button type="button" class="hist-btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>↶</button>
+      <button type="button" class="hist-btn" id="redoBtn" title="Redo (Ctrl+Y)" disabled>↷</button>
+      <div class="hist-menu-wrap">
+        <button type="button" class="hist-btn" id="histMenuBtn" title="More actions" aria-haspopup="true">⋮</button>
+        <div class="hist-menu" id="histMenu" style="display:none">
+          <button type="button" data-act="clearPins">⌫ Clear Pins</button>
+          <button type="button" data-act="resetPeriph">⟲ Reset Peripherals</button>
+        </div>
+      </div>
+    </div>
+    <div class="theme-picker-wrap" id="themePickerWrap">
+      <button class="theme-btn" id="themeToggle" title="Change theme" aria-label="Change theme" aria-haspopup="true">🎨</button>
+      <div class="theme-menu" id="themeMenu" style="display:none">
+        <button type="button" data-theme-id="dark"><span class="theme-swatch sw-dark"></span>Dark</button>
+        <button type="button" data-theme-id="light"><span class="theme-swatch sw-light"></span>Light</button>
+        <button type="button" data-theme-id="midnight"><span class="theme-swatch sw-midnight"></span>Midnight</button>
+        <button type="button" data-theme-id="paper"><span class="theme-swatch sw-paper"></span>Paper</button>
+      </div>
+    </div>
   </div>
   <div class="logo">
     <div class="logo-row">
@@ -471,7 +621,7 @@ html[data-theme="light"] .wv-lbl.blue{fill:#3d6fd8;}
       </svg>
       <div class="mark"><span class="b-open">Open</span><span class="b-mcu">MCU</span><span class="b-cube"> Cube</span></div>
     </div>
-    <div class="tag"><span class="ver">v1.6.0</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span></div>
+    <div class="tag"><span class="ver">v1.6.1</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span></div>
   </div>
 </header>
 
@@ -488,17 +638,38 @@ html[data-theme="light"] .wv-lbl.blue{fill:#3d6fd8;}
         <h2>Package view <span class="help" tabindex="0" data-tip="Package view — interactive top-down drawing of the selected package. Click any pin to select it; the Pin Configuration panel on the left shows its options. Legend: cyan ring = assigned, orange dashed = suggested free pin, amber bolt = clock pin (HSE/LSE), blinking red = busy/conflicted.">?</span></h2>
         <h3 id="pkgTitle">TSSOP20</h3>
         <div class="chipwrap">
-          <svg id="chipSvg" class="chip" viewBox="0 0 640 520" xmlns="http://www.w3.org/2000/svg"></svg>
+          <div class="chip-zoom-shell" id="chipZoomShell">
+            <div class="chip-zoom-toolbar">
+              <button type="button" class="chip-zoom-btn" id="chipZoomOutBtn" title="Zoom out">−</button>
+              <button type="button" class="chip-zoom-btn chip-zoom-reset" id="chipZoom100Btn" title="Reset to 100% and re-center">100%</button>
+              <button type="button" class="chip-zoom-btn" id="chipZoomInBtn" title="Zoom in">+</button>
+            </div>
+            <div class="chip-zoom-viewport" id="chipZoomViewport">
+              <svg id="chipSvg" class="chip" viewBox="0 0 640 520" xmlns="http://www.w3.org/2000/svg"></svg>
+            </div>
+          </div>
           <div class="legend" id="legend"></div>
         </div>
-        <p class="hint">Click a pin to configure it. <b style="color:#33d6c0">cyan ring</b> = assigned, <b style="color:#f2a341">orange dashed</b> = suggested free pin, <b style="color:#8a6a2a">orange ⚡</b> = clock pin (HSE/LSE), <b style="color:#e2596b">blinking red</b> = busy.</p>
+        <p class="hint">Click a pin to configure it. <b style="color:#33d6c0">cyan ring</b> = assigned, <b style="color:#f2a341">orange dashed</b> = suggested free pin, <b style="color:#8a6a2a">orange ⚡</b> = clock pin (HSE/LSE), <b style="color:#e2596b">blinking red</b> = busy. Scroll to zoom, drag to pan — use <span class="ltr">100%</span> to reset.</p>
       </div>
     </div>
     <div class="panel" style="margin-top:20px" id="periphPanel">
       <h2>Detected &amp; configured peripherals</h2>
       <h3>Enable &amp; Configure Peripherals <span class="help" tabindex="0" data-tip="Peripheral manager — lists everything the selected MCU offers (USART, SPI, I2C, timers, ADC, CAN…). Enable a peripheral to see its suggested pins, use “Mark Pins” to highlight free pins, then assign them with one click. A red card means a required pin is busy. The summary above shows currently detected/configured peripherals.">?</span></h3>
       <p class="hint" style="margin-bottom:16px">Enable a peripheral (UART, SPI, I2C, timer…). A red card means a required pin is busy. Use “Mark Pins” to see suggested pins, then assign with one click.</p>
+      <div class="periph-filterbar" id="periphFilterBar">
+        <div class="periph-search-wrap">
+          <span class="periph-search-icon">⌕</span>
+          <input type="text" id="periphSearch" class="periph-search" placeholder="Search peripherals… (e.g. UART, SPI, TIM1)" autocomplete="off">
+          <button type="button" id="periphSearchClear" class="periph-search-clear" title="Clear search" style="display:none">✕</button>
+        </div>
+        <div class="periph-groupchips" id="periphGroupChips"></div>
+      </div>
       <div id="periphSettings"></div>
+      <div id="periphNoMatch" class="periph-nomatch" style="display:none">
+        <span class="big">⌕</span>No peripherals match your filter.
+        <button type="button" class="btn-p ghost" id="periphFilterReset">Clear filters</button>
+      </div>
     </div>
   </div>
 
@@ -616,12 +787,10 @@ html[data-theme="light"] .wv-lbl.blue{fill:#3d6fd8;}
           <input id="outFileName" class="ltr" type="text" placeholder="project" value="openmcu_cube_project"
                  style="width:180px;padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--panel-2);color:var(--text-bright)"
                  title="Output filename (without extension) — used for the ZIP filename and, when enabled, the uvprojx filename. The standalone download is always named main.c. This name is also stored in project_settings.json.">
-          <label style="display:inline-flex;align-items:center;gap:6px;font-size:12.5px;white-space:nowrap;cursor:pointer" title="A ready-to-open Keil uVision project is included in the ZIP; main.c and all Drivers headers are added and their include paths are configured.">
-            <input type="checkbox" id="includeUvprojx" checked style="cursor:pointer">
-            Include Keil uVision project (.uvprojx)
-          </label>
           <button class="btn ghost" onclick="copyCode()">Copy</button>
           <button class="btn" onclick="downloadCode()">Download main.c</button>
+          <button class="btn ghost" id="outputSettingsBtn" type="button" title="Choose which files are included in the ZIP">⚙ Output Settings</button>
+          <button class="btn ghost" id="irqPriorityBtn" type="button" title="Set the priority order of enabled interrupts">⚡ Interrupt Priorities</button>
           <button class="btn ghost" onclick="downloadAll()">Download all files (ZIP)</button>
         </div>
       </div>
@@ -645,6 +814,88 @@ html[data-theme="light"] .wv-lbl.blue{fill:#3d6fd8;}
 </footer>
 
 <div class="toast" id="toast"></div>
+
+<!-- DEVICE SELECTION MODAL -->
+<div class="modal-backdrop" id="deviceModalBackdrop" style="display:none">
+  <div class="modal device-modal" id="deviceModal" role="dialog" aria-modal="true" aria-label="Select device">
+    <div class="modal-header">
+      <h2>Select Device</h2>
+      <button type="button" class="modal-close" id="deviceModalClose" title="Close (Esc)">✕</button>
+    </div>
+    <div class="device-modal-body">
+      <div class="periph-search-wrap" style="max-width:none">
+        <span class="periph-search-icon">⌕</span>
+        <input type="text" id="deviceSearch" class="periph-search" placeholder="Search model or package… (e.g. HK32F103CB, TSSOP20, PY32F030)" autocomplete="off">
+        <button type="button" id="deviceSearchClear" class="periph-search-clear" title="Clear search" style="display:none">✕</button>
+      </div>
+      <div class="device-filter-row">
+        <div class="device-filter-group">
+          <span class="device-filter-label">Brand</span>
+          <div class="periph-groupchips" id="deviceBrandChips"></div>
+        </div>
+        <div class="device-filter-group">
+          <span class="device-filter-label">Family</span>
+          <div class="periph-groupchips" id="deviceFamilyChips"></div>
+        </div>
+      </div>
+      <div class="device-modal-list" id="deviceModalList"></div>
+      <div id="deviceModalNoMatch" class="periph-nomatch" style="display:none">
+        <span class="big">⌕</span>No devices match your filter.
+        <button type="button" class="btn-p ghost" id="deviceModalFilterReset">Clear filters</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OUTPUT SETTINGS MODAL -->
+<div class="modal-backdrop" id="outputSettingsBackdrop" style="display:none">
+  <div class="modal" id="outputSettingsModal" role="dialog" aria-modal="true" aria-label="Output settings">
+    <div class="modal-header">
+      <h2>Output Settings</h2>
+      <button type="button" class="modal-close" id="outputSettingsClose" title="Close (Esc)">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="hint" style="margin:0 0 4px">Choose which files “Download all files (ZIP)” should include. <span class="ltr">Download main.c</span> is unaffected by these settings.</p>
+      <label class="output-item">
+        <input type="checkbox" id="outIncludeMainC" checked>
+        <div><div class="output-item-name">main.c</div><div class="output-item-desc">Generated initialization source. <span class="ltr">USER CODE</span> blocks from an uploaded previous version are preserved.</div></div>
+      </label>
+      <label class="output-item">
+        <input type="checkbox" id="includeUvprojx" checked>
+        <div><div class="output-item-name">Keil uVision project (.uvprojx)</div><div class="output-item-desc">Ready-to-open project; main.c and Drivers/ headers are added with include paths configured.</div></div>
+      </label>
+      <label class="output-item">
+        <input type="checkbox" id="outIncludeLibraries" checked>
+        <div><div class="output-item-name">SDK libraries (Drivers/)</div><div class="output-item-desc">CMSIS device headers and HAL / StdPeriph driver headers referenced by main.c.</div></div>
+      </label>
+      <label class="output-item">
+        <input type="checkbox" id="outIncludeSettingsJson" checked>
+        <div><div class="output-item-name">project_settings.json</div><div class="output-item-desc">Full configurator state — upload it later together with main.c to resume this exact project.</div></div>
+      </label>
+      <label class="output-item">
+        <input type="checkbox" id="outIncludeReadme" checked>
+        <div><div class="output-item-name">README.txt</div><div class="output-item-desc">Notes on the generated project, the SDK reference, and how to reopen it later.</div></div>
+      </label>
+    </div>
+  </div>
+</div>
+
+<!-- INTERRUPT PRIORITY MODAL -->
+<div class="modal-backdrop" id="irqPriorityBackdrop" style="display:none">
+  <div class="modal" id="irqPriorityModal" role="dialog" aria-modal="true" aria-label="Interrupt priorities">
+    <div class="modal-header">
+      <h2>Interrupt Priorities</h2>
+      <button type="button" class="modal-close" id="irqPriorityClose" title="Close (Esc)">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="hint" style="margin:0 0 4px">Drag <span class="ltr">⠿</span> to reorder, or use the arrows. Top = highest priority. These parts only expose 4 priority levels, so anything past the 4th item shares the lowest one.</p>
+      <div class="irq-prio-list" id="irqPriorityList"></div>
+      <div id="irqPriorityEmpty" class="periph-nomatch" style="display:none">
+        <span class="big">⚡</span>No interrupt is currently enabled.<br>Turn on an IRQ on a peripheral (or an EXTI on a pin) to see it here.
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Embedded SDK headers (gzip+base64) — these are packed into the generated ZIP -->
 <script>
@@ -1321,6 +1572,28 @@ function selectionPins(){
 /* ============================================================
    8. INIT / TABS / CLOCK INPUTS
    ============================================================ */
+function applyDeviceSelection(sk, pk){
+  state.series = sk; state.pkg = pk;
+  state.selectedPin = null;
+  state.pins = {};
+  state.periph = { SWD:{enabled:true, params:{}} };
+  selPeriph = null;
+  const S = SERIES[sk];
+  state.clk.hsi = S.hsiDefault;
+  if(S.pllMults) state.clk.pllMul = S.pllMulDefault||S.pllMults[0];
+  if(!S.hasPLL) state.clk.pll = false;
+  if(!S.lsePins) state.clk.lse = false;
+  state.clk.apb2 = '1';
+  if(!SERIES[sk].packages[pk].pins.some(p=>S.hsePins.includes(p[1]))) state.clk.hse = false;
+  if(state.clk.hseFreq > S.hseMax) state.clk.hseFreq = S.hseMax;
+  if(state.clk.hseFreq < S.hseMin) state.clk.hseFreq = S.hseMin;
+  state.clk.sysclkSrc = 'HSISYS';
+  const sel0 = document.getElementById('pkgSelect');
+  if(sel0) sel0.value = sk+'|'+pk;
+  if(state.periphFilter) state.periphFilter = {q:'', group:'All'};
+  renderAll();
+  toast(`Device changed to ${SERIES[sk].packages[pk].label} — pin assignments were reset`,'ok');
+}
 function init(){
   const sel = document.getElementById('pkgSelect');
   Object.keys(SERIES).forEach(sk=>{
@@ -1336,23 +1609,7 @@ function init(){
   sel.value = state.series+'|'+state.pkg;
   sel.addEventListener('change', e=>{
     const [sk,pk] = e.target.value.split('|');
-    state.series = sk; state.pkg = pk;
-    state.selectedPin = null;
-    state.pins = {};
-    state.periph = { SWD:{enabled:true, params:{}} };
-    selPeriph = null;
-    const S = SERIES[sk];
-    state.clk.hsi = S.hsiDefault;
-    if(S.pllMults) state.clk.pllMul = S.pllMulDefault||S.pllMults[0];
-    if(!S.hasPLL) state.clk.pll = false;
-    if(!S.lsePins) state.clk.lse = false;
-    state.clk.apb2 = '1';
-    if(!SERIES[sk].packages[pk].pins.some(p=>S.hsePins.includes(p[1]))) state.clk.hse = false;
-    if(state.clk.hseFreq > S.hseMax) state.clk.hseFreq = S.hseMax;
-    if(state.clk.hseFreq < S.hseMin) state.clk.hseFreq = S.hseMin;
-    state.clk.sysclkSrc = 'HSISYS';
-    renderAll();
-    toast(`Device changed to ${SERIES[sk].packages[pk].label} — pin assignments were reset`,'ok');
+    applyDeviceSelection(sk, pk);
   });
 
   document.getElementById('tabs').addEventListener('click', e=>{
@@ -1402,6 +1659,29 @@ function init(){
     toast(msg, settingsBad ? 'err' : 'ok');
   });
 
+  const periphSearchEl = document.getElementById('periphSearch');
+  if(periphSearchEl){
+    periphSearchEl.addEventListener('input', e=>{
+      ensurePeriphFilter().q = e.target.value;
+      renderPeriphPanel();
+    });
+  }
+  const periphSearchClearEl = document.getElementById('periphSearchClear');
+  if(periphSearchClearEl){
+    periphSearchClearEl.addEventListener('click', ()=>{
+      ensurePeriphFilter().q = '';
+      renderPeriphPanel();
+      const s=document.getElementById('periphSearch'); if(s){ s.value=''; s.focus(); }
+    });
+  }
+  const periphFilterResetEl = document.getElementById('periphFilterReset');
+  if(periphFilterResetEl){
+    periphFilterResetEl.addEventListener('click', ()=>{
+      state.periphFilter = {q:'', group:'All'};
+      renderPeriphPanel();
+    });
+  }
+
   renderAll();
   renderCode();
 }
@@ -1450,7 +1730,7 @@ function projectSettingsObject(){
   const uvChk = document.getElementById('includeUvprojx');
   return {
     __hkpy32cubemx_settings__: true,
-    toolVersion: '1.6.0.2',
+    toolVersion: '1.6.1',
     savedAt: new Date().toISOString(),
     series: state.series,
     pkg: state.pkg,
@@ -1458,7 +1738,8 @@ function projectSettingsObject(){
     periph: state.periph,
     clk: state.clk,
     outFileName: outFileBase(),
-    includeUvprojx: uvChk ? !!uvChk.checked : true
+    includeUvprojx: uvChk ? !!uvChk.checked : true,
+    irqPriority: (window.__omcuIrqPriorityOrder||[]).slice()
   };
 }
 function applyProjectSettings(obj){
@@ -1481,6 +1762,9 @@ function applyProjectSettings(obj){
     if(typeof obj.includeUvprojx === 'boolean'){
       const uvChk = document.getElementById('includeUvprojx');
       if(uvChk) uvChk.checked = obj.includeUvprojx;
+    }
+    if(Array.isArray(obj.irqPriority) && typeof window.__omcuSetIrqPriorityOrder==='function'){
+      window.__omcuSetIrqPriorityOrder(obj.irqPriority);
     }
     renderAll();
     return true;
@@ -1869,9 +2153,12 @@ function cardHtml(name){
       .join('') + `</div>`;
   }
   if(enabled && params.length){
+    /* seed defaults for every declared param, even ones the mode-aware
+       filter below hides (e.g. psc/arr/pulse once the Waveform Designer
+       owns their input) — code generation still needs a real value. */
+    params.forEach(([key,label,opts,def])=>{ if(pr[key]===undefined) pr[key]=def; });
     const plist = (window.wvParamFilter||(a=>a))(name, params);
     html += `<div class="paramgrid">` + plist.map(([key,label,opts,def])=>{
-      if(pr[key]===undefined) pr[key]=def;
       const val = pr[key];
       if(opts && opts.length){
         return `<div class="field"><label>${label}</label><select data-p="${name}.${key}">${opts.map(o=>`<option ${String(o)===String(val)?'selected':''}>${o}</option>`).join('')}</select></div>`;
@@ -1885,21 +2172,62 @@ function cardHtml(name){
   html += `</div>`;
   return html;
 }
+function ensurePeriphFilter(){
+  if(!state.periphFilter) state.periphFilter = {q:'', group:'All'};
+  return state.periphFilter;
+}
+function periphMatchesFilter(n, q){
+  if(!q) return true;
+  const meta = PERIPH_META[n]||{};
+  const hay = (n+' '+(meta.desc||'')+' '+(meta.group||'')).toLowerCase();
+  return hay.indexOf(q) >= 0;
+}
+function renderPeriphFilterBar(){
+  const bar = document.getElementById('periphGroupChips');
+  if(!bar) return;
+  const f = ensurePeriphFilter();
+  const avail = seriesPeriphs().filter(n=>periphAvailable(n));
+  const groups = ['All', ...GROUP_ORDER.filter(g=>avail.some(n=>PERIPH_META[n].group===g))];
+  bar.innerHTML = groups.map(g=>{
+    const count = g==='All' ? avail.length : avail.filter(n=>PERIPH_META[n].group===g).length;
+    const active = (f.group===g) ? ' active' : '';
+    return `<button type="button" class="periph-chip${active}" data-grp="${g}">${g} <span class="periph-chip-count">${count}</span></button>`;
+  }).join('');
+  bar.querySelectorAll('[data-grp]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      ensurePeriphFilter().group = btn.dataset.grp;
+      renderPeriphPanel();
+    });
+  });
+  const search = document.getElementById('periphSearch');
+  const clearBtn = document.getElementById('periphSearchClear');
+  if(search && document.activeElement!==search) search.value = f.q||'';
+  if(clearBtn) clearBtn.style.display = f.q ? 'inline-flex' : 'none';
+}
 function renderPeriphPanel(){
   const el = document.getElementById('periphSettings');
+  const noMatch = document.getElementById('periphNoMatch');
+  const f = ensurePeriphFilter();
+  const q = (f.q||'').trim().toLowerCase();
   let html='';
+  let shown = 0;
   GROUP_ORDER.forEach(grp=>{
-    const names = seriesPeriphs().filter(n=>PERIPH_META[n].group===grp && periphAvailable(n));
+    if(f.group!=='All' && f.group!==grp) return;
+    const names = seriesPeriphs().filter(n=>PERIPH_META[n].group===grp && periphAvailable(n) && periphMatchesFilter(n,q));
     if(!names.length) return;
+    shown += names.length;
     html += `<div class="pgroup"><div class="pgroup-title">${grp}</div>` + names.map(cardHtml).join('') + `</div>`;
   });
   el.innerHTML = html;
+  el.style.display = shown ? '' : 'none';
+  if(noMatch) noMatch.style.display = shown ? 'none' : '';
   el.querySelectorAll('[data-p]').forEach(inp=>{
     inp.addEventListener('input', e=>{
       const [k,key] = e.target.dataset.p.split('.');
       periphParams(k)[key] = e.target.value;
     });
   });
+  renderPeriphFilterBar();
 }
 
 /* ============================================================
@@ -3386,7 +3714,7 @@ function generateUvprojx(hdrFiles){
 '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>',
 '<Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="project_projx.xsd">',
 '  <SchemaVersion>2.1</SchemaVersion>',
-'  <Header>### uVision Project, generated by OpenMCU Cube v1.6.0 — verify Device/IROM/IRAM against your exact chip'+(vendor?' (Vendor pack: '+packId+')':' (no vendor pack referenced — pick your device manually)')+' before use ###</Header>',
+'  <Header>### uVision Project, generated by OpenMCU Cube v1.6.1 — verify Device/IROM/IRAM against your exact chip'+(vendor?' (Vendor pack: '+packId+')':' (no vendor pack referenced — pick your device manually)')+' before use ###</Header>',
 '  <Targets>',
 '    <Target>',
 '      <TargetName>Target 1</TargetName>',
@@ -3641,7 +3969,7 @@ function toast(msg,type){
    ============================================================ */
 (function(){
   const V14 = '1.5.2';
-  document.title = 'OpenMCU Cube v1.6.0.2 · HK32 / PY32 Configurator';
+  document.title = 'OpenMCU Cube v1.6.1 · HK32 / PY32 Configurator';
 
   const AF_HKF0301M = {
     PA0:{af:[["TIM1_BKIN",3],["TIM2_CH3",4],["MCO",5]],analog:[]},
@@ -3897,7 +4225,7 @@ function toast(msg,type){
     const uvLine = (uvInfo && uvInfo.vendor)
       ? ' - Vendor/Device pack "'+uvInfo.packId+'" is referenced and is a real, installable Keil pack (install via Pack Installer if missing); pick your exact chip in Options for Target -> Device if it differs from '+uvInfo.device+'.'
       : ' - No vendor device pack is referenced for this MCU family (none found in the public Keil pack index); pick your exact chip manually in Options for Target -> Device once a matching pack is installed.';
-    return ['OpenMCU Cube v1.6.0 - generated configuration','===============================================','Target: '+curPkg().label,'Series: '+curSeries().label,'SDK reference: '+(links[state.series]||'vendor SDK'),'',
+    return ['OpenMCU Cube v1.6.1 - generated configuration','===============================================','Target: '+curPkg().label,'Series: '+curSeries().label,'SDK reference: '+(links[state.series]||'vendor SDK'),'',
       'Contents:',' - main.c                : generated init code (edit only between USER CODE BEGIN/END)',' - Drivers/              : required CMSIS device + peripheral headers (from the official SDK)',' - project_settings.json : full configurator state (device/pins/peripherals/clock tree/project name)',' - <project>.uvprojx     : Keil uVision5 project (only if the "Keil uVision project" checkbox was on)','',
       'Resuming / editing this project later:',' - Reopen OpenMCU Cube, go to the code tab, and use the upload box to select main.c AND project_settings.json together.',' - Selecting project_settings.json restores the device, pin map, peripherals, clock tree, project name AND the Keil-project checkbox state exactly as saved.',' - The output filename field controls the .zip archive name and the .uvprojx file name; the single .c download and the file inside the zip are always main.c.','',
       'Keil uVision project (.uvprojx):',
@@ -3910,7 +4238,7 @@ function toast(msg,type){
   };
 
   /* version badge */
-  setTimeout(()=>{try{const logo=document.querySelector('.logo .tag');if(logo)logo.innerHTML='<span class="ver">v1.6.0</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';}catch(_){}} ,0);
+  setTimeout(()=>{try{const logo=document.querySelector('.logo .tag');if(logo)logo.innerHTML='<span class="ver">v1.6.1</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';}catch(_){}} ,0);
 })();
 
 
@@ -4021,7 +4349,7 @@ function toast(msg,type){
     const iromStart='0x08000000', iramStart='0x20000000';
     const iromSize='0x'+info.flash.toString(16), iramSize='0x'+info.ram.toString(16);
     const sim=x.family==='HKF103'?'SARMCM3.DLL':'SARMCM1.DLL', cpuArg=x.family==='HKF103'?'-pCM3':'-pCM0';
-    const header='### uVision Project, generated by OpenMCU Cube v1.6.0 — exact HK32 DFP metadata: '+pack.packId+' / '+x.device+' ###';
+    const header='### uVision Project, generated by OpenMCU Cube v1.6.1 — exact HK32 DFP metadata: '+pack.packId+' / '+x.device+' ###';
     const startup=info.startup, algo=info.algo, svd=info.svd;
     return [
 '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>',
@@ -4079,7 +4407,7 @@ function toast(msg,type){
   };
 
   setTimeout(()=>{try{
-    const tag=document.querySelector('.logo .tag'); if(tag) tag.innerHTML='<span class="ver">v1.6.0</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';
+    const tag=document.querySelector('.logo .tag'); if(tag) tag.innerHTML='<span class="ver">v1.6.1</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';
   }catch(_){}} ,0);
 })();
 
@@ -4677,7 +5005,7 @@ function uvprojxText(allFiles){
 '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>',
 '<Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="project_projx.xsd">',
 '  <SchemaVersion>2.1</SchemaVersion>',
-'  <Header>### uVision Project, generated by OpenMCU Cube v1.6.0 ###</Header>',
+'  <Header>### uVision Project, generated by OpenMCU Cube v1.6.1 ###</Header>',
 '  <Targets>',
 '    <Target>',
 '      <TargetName>'+out+'</TargetName>',
@@ -4918,7 +5246,7 @@ function uvoptxText(){
 '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>',
 '<ProjectOpt xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="project_optx.xsd">',
 '  <SchemaVersion>1.0</SchemaVersion>',
-'  <Header>### uVision Project, generated by OpenMCU Cube v1.6.0 ###</Header>',
+'  <Header>### uVision Project, generated by OpenMCU Cube v1.6.1 ###</Header>',
 '  <Extensions><cExt>*.c</cExt><aExt>*.s*; *.src; *.a*</aExt><oExt>*.obj; *.o</oExt><lExt>*.lib</lExt><tExt>*.txt; *.h; *.inc; *.md</tExt><pExt>*.plm</pExt><CppX>*.cpp</CppX><nMigrate>0</nMigrate></Extensions>',
 '  <Target>',
 '    <TargetName>'+out+'</TargetName>',
@@ -4985,19 +5313,51 @@ async function buildProjectFiles(){
 }
 
 downloadAll = async function(){
+  const buildCheck = (typeof validateKeilBuildConfig==='function') ? validateKeilBuildConfig() : {ok:true};
+  if(!buildCheck.ok){ alert(buildCheck.message); return; }
+  if(typeof window.OpenMCUValidation==='function'){
+    const v = window.OpenMCUValidation();
+    if(!v.ok){
+      const msg=v.errors.map(e=>'['+e.code+'] '+e.message).join('\n');
+      try{toast('Export blocked: '+v.errors.length+' validation error(s)','err');}catch(e){}
+      alert('OpenMCU Cube 1.6.1 — export blocked\n\n'+msg);
+      return;
+    }
+  }
+  /* v1.6.1 output-settings toggles (main.c / Keil / libraries / settings
+     json / README) — getOutputSettings() lives in the trailing UX module
+     and is exposed on window; default to "everything on" if unavailable. */
+  const opt = (typeof window.getOutputSettings==='function') ? window.getOutputSettings()
+              : {mainc:true, keil:true, libraries:true, settingsJson:true, readme:true};
+  if(!opt.mainc && !opt.libraries && !opt.settingsJson && !opt.readme && !opt.keil){
+    toast('Nothing selected — enable at least one file in Output Settings','err');
+    return;
+  }
   try{
     toast('Building project…','ok');
-    const {files, info} = await buildProjectFiles();
+    const {files: allFiles, info} = await buildProjectFiles();
+    const appNames = new Set([
+      'Core/Src/main.c',
+      'Core/Src/'+info.itBase+'_it.c',
+      'Core/Inc/'+info.itBase+'_it.h',
+      'Core/Src/'+info.itBase+'_hal_msp.c'
+    ]);
+    let files = allFiles.filter(f=>{
+      if(f.name==='project_settings.json') return opt.settingsJson;
+      if(appNames.has(f.name)) return opt.mainc;
+      return opt.libraries; /* vendor SDK sources/headers + any uploaded extras */
+    });
 
     const uvChk = document.getElementById('includeUvprojx');
-    const includeUv = !uvChk || uvChk.checked;
+    const includeUv = opt.keil && (!uvChk || uvChk.checked);
     if(includeUv){
       const base = outFileBase();
       files.push({name: base+'.uvprojx', text: uvprojxText(files)});
       files.push({name: base+'.uvoptx',  text: uvoptxText()});
     }
-    files.push({name:'README.txt', text: readmeText(files, includeUv)});
+    if(opt.readme) files.push({name:'README.txt', text: readmeText(files, includeUv)});
 
+    if(!files.length){ toast('Nothing to package — enable at least one file in Output Settings','err'); return; }
     downloadBlob(buildZip(files), outFileBase()+'.zip');
     const nC = files.filter(f=>/\.c$/i.test(f.name)).length;
     const nH = files.filter(f=>/\.h$/i.test(f.name)).length;
@@ -5388,7 +5748,7 @@ function readmeText(files, includeUv){
   const cs=files.filter(f=>/\.c$/i.test(f.name)).length;
   const hs=files.filter(f=>/\.h$/i.test(f.name)).length;
   return [
-'OpenMCU Cube v1.6.0.2 — generated project',
+'OpenMCU Cube v1.6.1 — generated project',
 '=======================================',
 'Target      : '+curPkg().label,
 'Keil device : '+info.device+'   (pack: '+info.pack+')',
@@ -5486,8 +5846,8 @@ buildZip = function(files){
 setTimeout(()=>{
   try{
     const tag=document.querySelector('.logo .tag');
-    if(tag) tag.innerHTML='<span class="ver">v1.6.0</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';
-    document.title = 'OpenMCU Cube v1.6.0.2 · HK32 / PY32 Configurator';
+    if(tag) tag.innerHTML='<span class="ver">v1.6.1</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>';
+    document.title = 'OpenMCU Cube v1.6.1 · HK32 / PY32 Configurator';
     const lbl=document.querySelector('label[for="includeUvprojx"]') ||
               (document.getElementById('includeUvprojx')||{}).parentElement;
     if(lbl && /Keil/i.test(lbl.textContent||'')){
@@ -5578,15 +5938,33 @@ setTimeout(()=>{
 
 })();
 
-/* ---------- light / dark theme toggle ---------- */
+/* ---------- theme picker (Dark / Light / Midnight / Paper) ---------- */
 (function(){
+  var THEME_MODE={dark:'dark',light:'light',midnight:'dark',paper:'light'};
   var btn=document.getElementById('themeToggle');
-  if(!btn) return;
-  btn.addEventListener('click',function(){
-    var cur=document.documentElement.getAttribute('data-theme')==='light'?'dark':'light';
-    document.documentElement.setAttribute('data-theme',cur);
-    try{localStorage.setItem('omcu-theme',cur);}catch(e){}
+  var menu=document.getElementById('themeMenu');
+  if(!btn || !menu) return;
+  function applyTheme(id){
+    if(!THEME_MODE[id]) id='dark';
+    document.documentElement.setAttribute('data-theme',id);
+    document.documentElement.setAttribute('data-mode',THEME_MODE[id]);
+    try{ localStorage.setItem('omcu-theme',id); }catch(e){}
+    menu.querySelectorAll('button[data-theme-id]').forEach(function(b){
+      b.classList.toggle('active', b.dataset.themeId===id);
+    });
+  }
+  applyTheme(document.documentElement.getAttribute('data-theme')||'dark');
+  btn.addEventListener('click', function(e){
+    e.stopPropagation();
+    menu.style.display = (menu.style.display==='none') ? 'block' : 'none';
   });
+  menu.addEventListener('click', function(e){
+    var b=e.target.closest('[data-theme-id]');
+    if(!b) return;
+    applyTheme(b.dataset.themeId);
+    menu.style.display='none';
+  });
+  document.addEventListener('click', function(){ menu.style.display='none'; });
 })();
 
 </script>
@@ -6288,10 +6666,15 @@ setTimeout(()=>{
     if(!/^TIM\d+$/.test(name)) return params;
     const p = periphParams(name);
     const mode = p.mode||'PWM Generation';
+    /* psc / arr / pulse are edited via their own slider + adjacent number
+       box in the Waveform Designer below (PSC/ARR sliders are always
+       shown there; each channel row has its own Pulse slider) — showing
+       them again here would just duplicate that control, so they're
+       intentionally left out of the generic param grid. */
     const allowed = (()=>{
-      if(mode==='Encoder') return ['mode','psc','arr','ppr','initcnt','irq'];
-      if(mode==='Input Capture') return ['mode','psc','arr','irq'];
-      return ['mode','psc','arr','pulse','chpol','irq'];   /* PWM & OC */
+      if(mode==='Encoder') return ['mode','ppr','initcnt','irq'];
+      if(mode==='Input Capture') return ['mode','irq'];
+      return ['mode','chpol','irq'];   /* PWM & OC */
     })();
     return params.filter(([k])=>allowed.indexOf(k)>=0);
   };
@@ -6744,8 +7127,12 @@ setTimeout(()=>{
    unsupported / unverifiable configurations fail closed.
    ============================================================ */
 (function(){
-  const VERSION='1.6.0.2';
+  const VERSION='1.6.1';
   try{ document.title='OpenMCU Cube v'+VERSION+' · HK32 / PY32 Configurator'; }catch(e){}
+  try{
+    const setTag=()=>{ const t=document.querySelector('.logo .tag'); if(t) t.innerHTML='<span class="ver">v'+VERSION+'</span><span class="dot-sep">·</span><span class="unofficial">unofficial, unaffiliated tool</span>'; };
+    setTag(); setTimeout(setTag,0);
+  }catch(e){}
 
   /* ---- canonical bus ownership: HK32F103 CAN1 is APB1 ---- */
   try{
@@ -6866,6 +7253,611 @@ setTimeout(()=>{
       };
     }
   }catch(e){}
+})();
+</script>
+
+<!-- ============================================================
+     OpenMCU Cube v1.6.1 — UX overhaul
+     · Interrupt priority ordering (drag list, feeds NVIC codegen)
+     · Zoomable / pannable package view with a 100% reset button
+     · Output-file settings modal for the ZIP download
+     · Undo / Redo (Ctrl+Z / Ctrl+Y) + Clear pins / Reset peripherals
+     · Device picker: brand/family filters + search
+     · Peripheral list: search + group filter (implemented in-place
+       in renderPeriphPanel above; see periph-filterbar)
+     ============================================================ -->
+<script>
+(function(){
+  'use strict';
+
+  /* =========================================================
+     A. DEVICE SELECTION MODAL — brand/family filter + search
+     ========================================================= */
+  const deviceFilter = {q:'', brand:'All', family:'All'};
+  function brandOfSeries(sk){ return sk.indexOf('HK')===0 ? 'HK MicroChip' : 'Puya'; }
+  function allDeviceEntries(){
+    const out=[];
+    Object.keys(SERIES).forEach(sk=>{
+      const S=SERIES[sk];
+      Object.keys(S.packages).forEach(pk=>{
+        out.push({sk, pk, seriesLabel:S.label, pkgLabel:S.packages[pk].label, brand:brandOfSeries(sk)});
+      });
+    });
+    return out;
+  }
+  function updateDeviceSelectLabel(){
+    const lbl = document.getElementById('deviceSelectLabel');
+    if(!lbl) return;
+    const S = curSeries(), pkgLabel = curPkg().label.split('—')[0].trim();
+    lbl.textContent = S.label + ' · ' + pkgLabel;
+  }
+  function deviceMatchesFilter(e, q){
+    if(deviceFilter.brand!=='All' && e.brand!==deviceFilter.brand) return false;
+    if(deviceFilter.family!=='All' && e.sk!==deviceFilter.family) return false;
+    if(!q) return true;
+    const hay=(e.seriesLabel+' '+e.pkgLabel+' '+e.brand).toLowerCase();
+    return hay.indexOf(q)>=0;
+  }
+  function renderDeviceBrandChips(){
+    const el=document.getElementById('deviceBrandChips'); if(!el) return;
+    const entries=allDeviceEntries();
+    const brands=['All', ...new Set(entries.map(e=>e.brand))];
+    el.innerHTML = brands.map(b=>{
+      const count = b==='All' ? entries.length : entries.filter(e=>e.brand===b).length;
+      return `<button type="button" class="periph-chip${deviceFilter.brand===b?' active':''}" data-brand="${b}">${b} <span class="periph-chip-count">${count}</span></button>`;
+    }).join('');
+    el.querySelectorAll('[data-brand]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        deviceFilter.brand = btn.dataset.brand;
+        /* reset family filter if it no longer belongs to the chosen brand */
+        if(deviceFilter.family!=='All' && brandOfSeries(deviceFilter.family)!==deviceFilter.brand && deviceFilter.brand!=='All'){
+          deviceFilter.family='All';
+        }
+        renderDeviceModal();
+      });
+    });
+  }
+  function renderDeviceFamilyChips(){
+    const el=document.getElementById('deviceFamilyChips'); if(!el) return;
+    const entries=allDeviceEntries().filter(e=> deviceFilter.brand==='All' || e.brand===deviceFilter.brand);
+    const fams=['All', ...new Set(entries.map(e=>e.sk))];
+    el.innerHTML = fams.map(f=>{
+      const label = f==='All' ? 'All' : SERIES[f].label;
+      const count = f==='All' ? entries.length : entries.filter(e=>e.sk===f).length;
+      return `<button type="button" class="periph-chip${deviceFilter.family===f?' active':''}" data-fam="${f}">${label} <span class="periph-chip-count">${count}</span></button>`;
+    }).join('');
+    el.querySelectorAll('[data-fam]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        deviceFilter.family = btn.dataset.fam;
+        renderDeviceModal();
+      });
+    });
+  }
+  function renderDeviceList(){
+    const listEl=document.getElementById('deviceModalList');
+    const noMatch=document.getElementById('deviceModalNoMatch');
+    if(!listEl) return;
+    const q=(deviceFilter.q||'').trim().toLowerCase();
+    const entries=allDeviceEntries().filter(e=>deviceMatchesFilter(e,q));
+    if(!entries.length){
+      listEl.innerHTML='';
+      listEl.style.display='none';
+      if(noMatch) noMatch.style.display='';
+      return;
+    }
+    listEl.style.display='';
+    if(noMatch) noMatch.style.display='none';
+    const bySeries={};
+    entries.forEach(e=>{ (bySeries[e.sk]=bySeries[e.sk]||[]).push(e); });
+    listEl.innerHTML = Object.keys(bySeries).map(sk=>{
+      const rows = bySeries[sk].map(e=>{
+        const isCur = (state.series===e.sk && state.pkg===e.pk);
+        return `<button type="button" class="device-card${isCur?' current':''}" data-sk="${e.sk}" data-pk="${e.pk}">
+          <div><div class="device-card-name">${e.pkgLabel}</div></div>
+          ${isCur?'<span class="device-card-badge">CURRENT</span>':''}
+        </button>`;
+      }).join('');
+      return `<div class="device-fam-group">
+        <div class="device-fam-title">${SERIES[sk].label} <span class="fam-vendor">${brandOfSeries(sk)}</span></div>
+        ${rows}
+      </div>`;
+    }).join('');
+    listEl.querySelectorAll('[data-sk]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const sk=btn.dataset.sk, pk=btn.dataset.pk;
+        closeDeviceModal();
+        if(sk!==state.series || pk!==state.pkg) applyDeviceSelection(sk, pk);
+        updateDeviceSelectLabel();
+      });
+    });
+  }
+  function renderDeviceModal(){
+    renderDeviceBrandChips();
+    renderDeviceFamilyChips();
+    renderDeviceList();
+    const search=document.getElementById('deviceSearch');
+    const clearBtn=document.getElementById('deviceSearchClear');
+    if(search && document.activeElement!==search) search.value=deviceFilter.q||'';
+    if(clearBtn) clearBtn.style.display = deviceFilter.q ? 'inline-flex' : 'none';
+  }
+  function openDeviceModal(){
+    const bd=document.getElementById('deviceModalBackdrop');
+    if(!bd) return;
+    deviceFilter.q=''; deviceFilter.brand='All'; deviceFilter.family='All';
+    bd.style.display='flex';
+    renderDeviceModal();
+    setTimeout(()=>{ const s=document.getElementById('deviceSearch'); if(s) s.focus(); },30);
+  }
+  function closeDeviceModal(){
+    const bd=document.getElementById('deviceModalBackdrop');
+    if(bd) bd.style.display='none';
+  }
+  document.addEventListener('DOMContentLoaded', ()=>{
+    updateDeviceSelectLabel();
+    const btn=document.getElementById('deviceSelectBtn');
+    if(btn) btn.addEventListener('click', openDeviceModal);
+    const closeBtn=document.getElementById('deviceModalClose');
+    if(closeBtn) closeBtn.addEventListener('click', closeDeviceModal);
+    const bd=document.getElementById('deviceModalBackdrop');
+    if(bd) bd.addEventListener('click', e=>{ if(e.target===bd) closeDeviceModal(); });
+    const search=document.getElementById('deviceSearch');
+    if(search) search.addEventListener('input', e=>{ deviceFilter.q=e.target.value; renderDeviceList(); const c=document.getElementById('deviceSearchClear'); if(c) c.style.display=deviceFilter.q?'inline-flex':'none'; });
+    const clearBtn=document.getElementById('deviceSearchClear');
+    if(clearBtn) clearBtn.addEventListener('click', ()=>{ deviceFilter.q=''; renderDeviceModal(); if(search){search.value='';search.focus();} });
+    const resetBtn=document.getElementById('deviceModalFilterReset');
+    if(resetBtn) resetBtn.addEventListener('click', ()=>{ deviceFilter.q=''; deviceFilter.brand='All'; deviceFilter.family='All'; renderDeviceModal(); });
+  });
+  /* keep the label in sync whenever the rest of the UI re-renders */
+  const _oldRenderAllForDeviceLabel = window.renderAll;
+  window.renderAll = function(){
+    const r = _oldRenderAllForDeviceLabel.apply(this, arguments);
+    try{ updateDeviceSelectLabel(); }catch(e){}
+    return r;
+  };
+
+  /* generic Escape-to-close for any modal opened by this module */
+  document.addEventListener('keydown', e=>{
+    if(e.key!=='Escape') return;
+    document.querySelectorAll('.modal-backdrop').forEach(bd=>{
+      if(bd.style.display!=='none') bd.style.display='none';
+    });
+  });
+  window.closeDeviceModal = closeDeviceModal;
+
+  /* =========================================================
+     B. OUTPUT SETTINGS MODAL — choose which files go in the ZIP
+     ========================================================= */
+  function openOutputSettingsModal(){
+    const bd=document.getElementById('outputSettingsBackdrop');
+    if(bd) bd.style.display='flex';
+  }
+  function closeOutputSettingsModal(){
+    const bd=document.getElementById('outputSettingsBackdrop');
+    if(bd) bd.style.display='none';
+  }
+  function getOutputSettings(){
+    const val=id=>{ const el=document.getElementById(id); return el ? !!el.checked : true; };
+    return {
+      mainc: val('outIncludeMainC'),
+      keil: val('includeUvprojx'),
+      libraries: val('outIncludeLibraries'),
+      settingsJson: val('outIncludeSettingsJson'),
+      readme: val('outIncludeReadme'),
+    };
+  }
+  window.getOutputSettings = getOutputSettings;
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const btn=document.getElementById('outputSettingsBtn');
+    if(btn) btn.addEventListener('click', openOutputSettingsModal);
+    const closeBtn=document.getElementById('outputSettingsClose');
+    if(closeBtn) closeBtn.addEventListener('click', closeOutputSettingsModal);
+    const bd=document.getElementById('outputSettingsBackdrop');
+    if(bd) bd.addEventListener('click', e=>{ if(e.target===bd) closeOutputSettingsModal(); });
+    /* at least one file must stay selected — re-check main.c if the user
+       tries to leave every single item unchecked */
+    ['outIncludeMainC','includeUvprojx','outIncludeLibraries','outIncludeSettingsJson','outIncludeReadme'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el) return;
+      el.addEventListener('change', ()=>{
+        const anyOn=['outIncludeMainC','includeUvprojx','outIncludeLibraries','outIncludeSettingsJson','outIncludeReadme']
+          .some(i=>{const e=document.getElementById(i); return e && e.checked;});
+        if(!anyOn){ el.checked=true; toast('At least one output file must stay enabled','err'); }
+      });
+    });
+  });
+
+  /* =========================================================
+     C. UNDO / REDO + CLEAR PINS / RESET PERIPHERALS
+     ========================================================= */
+  const HIST_KEYS = ['series','pkg','pins','periph','clk'];
+  const HIST_LIMIT = 60;
+  let undoStack = [];
+  let redoStack = [];
+  let histSuspended = false;
+  let snapTimer = null;
+
+  function snapshotState(){
+    const o = {};
+    HIST_KEYS.forEach(k=>{ o[k] = state[k]; });
+    o.__irqPriority = (window.__omcuIrqPriorityOrder||[]).slice();
+    return JSON.stringify(o);
+  }
+  function applySnapshot(json){
+    const o = JSON.parse(json);
+    HIST_KEYS.forEach(k=>{ state[k] = o[k]; });
+    if(Array.isArray(o.__irqPriority) && window.__omcuSetIrqPriorityOrder) window.__omcuSetIrqPriorityOrder(o.__irqPriority);
+    selPeriph = null;
+    state.selectedPin = null;
+    const sel0=document.getElementById('pkgSelect'); if(sel0) sel0.value = state.series+'|'+state.pkg;
+  }
+  function updateHistButtons(){
+    const u=document.getElementById('undoBtn'), r=document.getElementById('redoBtn');
+    if(u) u.disabled = undoStack.length<=1;
+    if(r) r.disabled = redoStack.length===0;
+  }
+  function commitSnapshot(){
+    if(histSuspended) return;
+    const cur = snapshotState();
+    if(undoStack.length && undoStack[undoStack.length-1]===cur) { updateHistButtons(); return; }
+    undoStack.push(cur);
+    if(undoStack.length>HIST_LIMIT) undoStack.shift();
+    redoStack = [];
+    updateHistButtons();
+  }
+  function scheduleSnapshot(){
+    if(histSuspended) return;
+    clearTimeout(snapTimer);
+    snapTimer = setTimeout(commitSnapshot, 350);
+  }
+  function undo(){
+    if(undoStack.length<=1) return;
+    const cur = undoStack.pop();
+    redoStack.push(cur);
+    const prev = undoStack[undoStack.length-1];
+    histSuspended = true;
+    applySnapshot(prev);
+    histSuspended = false;
+    renderAll(); renderCode();
+    updateHistButtons();
+    toast('Undid last change','ok');
+  }
+  function redo(){
+    if(!redoStack.length) return;
+    const next = redoStack.pop();
+    undoStack.push(next);
+    histSuspended = true;
+    applySnapshot(next);
+    histSuspended = false;
+    renderAll(); renderCode();
+    updateHistButtons();
+    toast('Redid change','ok');
+  }
+  function clearAllPins(){
+    state.pins = {};
+    state.selectedPin = null;
+    selPeriph = null;
+    renderAll(); renderCode();
+    toast('All pin assignments cleared — enabled peripherals now need new pins (Ctrl+Z to undo)','ok');
+  }
+  function resetAllPeripherals(){
+    Object.entries(state.pins||{}).forEach(([p,s])=>{
+      if(s.owner && s.owner!=='SWD'){ s.mode='DEFAULT'; s.af=null; s.owner=null; }
+    });
+    state.periph = { SWD:{enabled:true, params:{}} };
+    selPeriph = null;
+    renderAll(); renderCode();
+    toast('All peripherals reset and their pins freed (Ctrl+Z to undo)','ok');
+  }
+
+  /* seed the stack once the app has finished its first render */
+  document.addEventListener('DOMContentLoaded', ()=>{
+    setTimeout(()=>{ undoStack=[snapshotState()]; redoStack=[]; updateHistButtons(); }, 60);
+
+    const undoBtn=document.getElementById('undoBtn'); if(undoBtn) undoBtn.addEventListener('click', undo);
+    const redoBtn=document.getElementById('redoBtn'); if(redoBtn) redoBtn.addEventListener('click', redo);
+    const menuBtn=document.getElementById('histMenuBtn');
+    const menu=document.getElementById('histMenu');
+    if(menuBtn && menu){
+      menuBtn.addEventListener('click', e=>{
+        e.stopPropagation();
+        menu.style.display = (menu.style.display==='none') ? 'block' : 'none';
+      });
+      document.addEventListener('click', ()=>{ menu.style.display='none'; });
+      menu.addEventListener('click', e=>{
+        const act = e.target && e.target.dataset ? e.target.dataset.act : null;
+        if(act==='clearPins') clearAllPins();
+        else if(act==='resetPeriph') resetAllPeripherals();
+        menu.style.display='none';
+      });
+    }
+  });
+
+  window.addEventListener('keydown', e=>{
+    const ctrlOrCmd = e.ctrlKey || e.metaKey;
+    if(!ctrlOrCmd) return;
+    const tag = (document.activeElement && document.activeElement.tagName || '').toLowerCase();
+    const typing = tag==='input' || tag==='textarea';
+    const key = e.key.toLowerCase();
+    if(typing){
+      /* let native undo/redo work while the user is actively typing in a field */
+      return;
+    }
+    if(key==='z' && !e.shiftKey){ e.preventDefault(); undo(); }
+    else if(key==='y' || (key==='z' && e.shiftKey)){ e.preventDefault(); redo(); }
+  }, true);
+
+  /* hook every renderAll() call to (debounced) commit a snapshot of the
+     settled state — covers pin edits, peripheral toggles, device/clock changes */
+  const _oldRenderAllForHistory = window.renderAll;
+  window.renderAll = function(){
+    const r = _oldRenderAllForHistory.apply(this, arguments);
+    scheduleSnapshot();
+    return r;
+  };
+  /* peripheral parameter inputs (text fields inside cards) don't call
+     renderAll on every keystroke — also snapshot on blur/change anywhere */
+  document.addEventListener('change', e=>{
+    if(e.target && (e.target.matches('input,select,textarea'))) scheduleSnapshot();
+  }, true);
+
+  /* =========================================================
+     D. CHIP PACKAGE VIEW — independent zoom & pan
+     ========================================================= */
+  let zoomScale = 1, panX = 0, panY = 0;
+  let dragState = null;
+  let justPanned = false;
+  const ZOOM_MIN = 0.4, ZOOM_MAX = 5;
+
+  function clampZoom(s){ return Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, s)); }
+  function applyChipTransform(){
+    const svg = document.getElementById('chipSvg');
+    if(svg) svg.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+  }
+  function resetChipZoom(){
+    zoomScale = 1; panX = 0; panY = 0;
+    applyChipTransform();
+  }
+  function setupChipZoomPan(){
+    const viewport = document.getElementById('chipZoomViewport');
+    const svg = document.getElementById('chipSvg');
+    if(!viewport || !svg || viewport.dataset.zoomReady) return;
+    viewport.dataset.zoomReady = '1';
+    applyChipTransform();
+
+    viewport.addEventListener('wheel', e=>{
+      e.preventDefault();
+      const factor = Math.pow(1.0016, -e.deltaY);
+      zoomScale = clampZoom(zoomScale * factor);
+      applyChipTransform();
+    }, {passive:false});
+
+    viewport.addEventListener('pointerdown', e=>{
+      if(e.button!==0 && e.pointerType==='mouse') return;
+      dragState = {pointerId:e.pointerId, startX:e.clientX, startY:e.clientY, startPanX:panX, startPanY:panY, moved:false, captured:false};
+    });
+    viewport.addEventListener('pointermove', e=>{
+      if(!dragState) return;
+      const dx = e.clientX - dragState.startX, dy = e.clientY - dragState.startY;
+      if(!dragState.moved && (Math.abs(dx)>4 || Math.abs(dy)>4)){
+        dragState.moved = true;
+        /* only take pointer capture once we know this is a real drag —
+           capturing on every plain click retargets the native 'click'
+           event to the viewport and silently breaks pin selection */
+        try{ viewport.setPointerCapture(dragState.pointerId); dragState.captured=true; }catch(err){}
+        viewport.classList.add('grabbing');
+      }
+      if(dragState.moved){
+        panX = dragState.startPanX + dx;
+        panY = dragState.startPanY + dy;
+        applyChipTransform();
+      }
+    });
+    function endDrag(){
+      if(!dragState) return;
+      viewport.classList.remove('grabbing');
+      if(dragState.moved){
+        justPanned = true;
+        setTimeout(()=>{ justPanned=false; }, 0);
+        if(dragState.captured){ try{ viewport.releasePointerCapture(dragState.pointerId); }catch(err){} }
+      }
+      dragState = null;
+    }
+    viewport.addEventListener('pointerup', endDrag);
+    viewport.addEventListener('pointercancel', endDrag);
+    viewport.addEventListener('pointerleave', ()=>{ if(dragState && !dragState.moved) endDrag(); });
+
+    /* swallow the click that follows an actual drag, so pins are not
+       accidentally selected/deselected while panning the view */
+    svg.addEventListener('click', e=>{
+      if(justPanned){ e.stopPropagation(); e.preventDefault(); }
+    }, true);
+
+    const inBtn=document.getElementById('chipZoomInBtn');
+    const outBtn=document.getElementById('chipZoomOutBtn');
+    const resetBtn=document.getElementById('chipZoom100Btn');
+    if(inBtn) inBtn.addEventListener('click', ()=>{ zoomScale=clampZoom(zoomScale*1.25); applyChipTransform(); });
+    if(outBtn) outBtn.addEventListener('click', ()=>{ zoomScale=clampZoom(zoomScale/1.25); applyChipTransform(); });
+    if(resetBtn) resetBtn.addEventListener('click', resetChipZoom);
+  }
+  document.addEventListener('DOMContentLoaded', ()=>{ setupChipZoomPan(); });
+  /* reset the view whenever the device (and therefore the package drawing) changes */
+  let _lastZoomDevice = null;
+  const _oldRenderAllForZoom = window.renderAll;
+  window.renderAll = function(){
+    const r = _oldRenderAllForZoom.apply(this, arguments);
+    setupChipZoomPan();
+    const devKey = state.series+'|'+state.pkg;
+    if(_lastZoomDevice!==null && _lastZoomDevice!==devKey) resetChipZoom();
+    _lastZoomDevice = devKey;
+    return r;
+  };
+
+  /* =========================================================
+     E. INTERRUPT PRIORITY ORDERING — feeds the NVIC codegen
+     ========================================================= */
+  const irqPriorityOrder = [];
+  window.__omcuIrqPriorityOrder = irqPriorityOrder;
+  window.__omcuSetIrqPriorityOrder = function(arr){
+    irqPriorityOrder.length = 0;
+    (arr||[]).forEach(x=>{ if(typeof x==='string') irqPriorityOrder.push(x); });
+    renderIrqPriorityModalIfOpen();
+  };
+
+  function extractActiveIrqns(lines){
+    const found = [], seen = new Set();
+    (lines||[]).forEach(line=>{
+      if(typeof line!=='string') return;
+      let m = line.match(/HAL_NVIC_SetPriority\(([A-Za-z0-9_]+)\s*,/);
+      if(!m) m = line.match(/NVIC_InitStructure\.NVIC_IRQChannel\s*=\s*([A-Za-z0-9_]+);/);
+      if(m && !seen.has(m[1])){ seen.add(m[1]); found.push(m[1]); }
+    });
+    return found;
+  }
+  function priorityForIrqn(irqn){
+    const idx = irqPriorityOrder.indexOf(irqn);
+    return idx<0 ? 0 : Math.min(idx,3);
+  }
+  function findPrecedingIrqChannel(lines, idx){
+    for(let j=idx-1; j>=Math.max(0,idx-3); j--){
+      const mm = typeof lines[j]==='string' && lines[j].match(/NVIC_InitStructure\.NVIC_IRQChannel\s*=\s*([A-Za-z0-9_]+);/);
+      if(mm) return mm[1];
+    }
+    return null;
+  }
+  function reconcileIrqOrder(lines){
+    const active = extractActiveIrqns(lines);
+    const activeSet = new Set(active);
+    const kept = irqPriorityOrder.filter(x=>activeSet.has(x));
+    active.forEach(x=>{ if(kept.indexOf(x)<0) kept.push(x); });
+    let changed = kept.length!==irqPriorityOrder.length;
+    if(!changed) for(let i=0;i<kept.length;i++){ if(kept[i]!==irqPriorityOrder[i]){ changed=true; break; } }
+    if(changed){
+      irqPriorityOrder.length = 0;
+      kept.forEach(x=>irqPriorityOrder.push(x));
+    }
+  }
+  function applyIrqPriorities(lines){
+    return (lines||[]).map((line, i)=>{
+      if(typeof line!=='string') return line;
+      let m = line.match(/^(\s*HAL_NVIC_SetPriority\()([A-Za-z0-9_]+)(\s*,\s*)\d+(\s*,\s*)\d+(\s*\);)\s*$/);
+      if(m){
+        const p = priorityForIrqn(m[2]);
+        return m[1]+m[2]+m[3]+p+m[4]+'0'+m[5];
+      }
+      m = line.match(/^(\s*NVIC_InitStructure\.NVIC_IRQChannelPreemptionPriority\s*=\s*)\d+(;)\s*$/);
+      if(m){
+        const irqn = findPrecedingIrqChannel(lines, i);
+        return m[1]+(irqn?priorityForIrqn(irqn):0)+m[2];
+      }
+      m = line.match(/^(\s*NVIC_InitStructure\.NVIC_IRQChannelPriority\s*=\s*)\d+(;)\s*$/);
+      if(m){
+        const irqn = findPrecedingIrqChannel(lines, i);
+        return m[1]+(irqn?priorityForIrqn(irqn):0)+m[2];
+      }
+      return line;
+    });
+  }
+  /* single hook point — every caller of generateCode() (live preview,
+     download main.c, download-all ZIP) goes through here */
+  const _oldGenerateCodeForIrq = window.generateCode;
+  window.generateCode = function(){
+    const r = _oldGenerateCodeForIrq.apply(this, arguments);
+    try{
+      reconcileIrqOrder(r.lines);
+      r.lines = applyIrqPriorities(r.lines);
+    }catch(e){}
+    return r;
+  };
+
+  function irqModalOpen(){
+    const bd=document.getElementById('irqPriorityBackdrop');
+    return !!bd && bd.style.display!=='none';
+  }
+  function renderIrqPriorityList(){
+    const listEl = document.getElementById('irqPriorityList');
+    const emptyEl = document.getElementById('irqPriorityEmpty');
+    if(!listEl) return;
+    try{ generateCode(); }catch(e){} /* side effect: reconciles irqPriorityOrder */
+    if(!irqPriorityOrder.length){
+      listEl.innerHTML=''; listEl.style.display='none';
+      if(emptyEl) emptyEl.style.display='';
+      return;
+    }
+    listEl.style.display=''; if(emptyEl) emptyEl.style.display='none';
+    listEl.innerHTML = irqPriorityOrder.map((irqn,idx)=>{
+      const p = Math.min(idx,3);
+      return `<div class="irq-prio-row" draggable="true" data-irqn="${irqn}">
+        <span class="irq-prio-handle">⠿</span>
+        <span class="irq-prio-badge">P${p}</span>
+        <span class="irq-prio-name">${irqn}</span>
+        <div class="irq-prio-arrows">
+          <button type="button" data-dir="up" title="Higher priority" ${idx===0?'disabled':''}>▲</button>
+          <button type="button" data-dir="down" title="Lower priority" ${idx===irqPriorityOrder.length-1?'disabled':''}>▼</button>
+        </div>
+      </div>`;
+    }).join('');
+    wireIrqRowEvents(listEl);
+  }
+  function renderIrqPriorityModalIfOpen(){ if(irqModalOpen()) renderIrqPriorityList(); }
+  function moveIrq(irqn, dir){
+    const i = irqPriorityOrder.indexOf(irqn);
+    if(i<0) return;
+    const j = dir==='up' ? i-1 : i+1;
+    if(j<0 || j>=irqPriorityOrder.length) return;
+    const tmp=irqPriorityOrder[i]; irqPriorityOrder[i]=irqPriorityOrder[j]; irqPriorityOrder[j]=tmp;
+    renderIrqPriorityList();
+    try{ renderCode(); }catch(e){}
+    scheduleSnapshot();
+  }
+  function wireIrqRowEvents(listEl){
+    listEl.querySelectorAll('.irq-prio-row').forEach(row=>{
+      row.addEventListener('dragstart', e=>{
+        row.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', row.dataset.irqn);
+        e.dataTransfer.effectAllowed='move';
+      });
+      row.addEventListener('dragend', ()=>row.classList.remove('dragging'));
+      row.addEventListener('dragover', e=>{ e.preventDefault(); e.dataTransfer.dropEffect='move'; row.classList.add('drag-over'); });
+      row.addEventListener('dragleave', ()=>row.classList.remove('drag-over'));
+      row.addEventListener('drop', e=>{
+        e.preventDefault();
+        row.classList.remove('drag-over');
+        const draggedIrqn = e.dataTransfer.getData('text/plain');
+        const targetIrqn = row.dataset.irqn;
+        if(draggedIrqn===targetIrqn) return;
+        const fromIdx = irqPriorityOrder.indexOf(draggedIrqn);
+        const toIdx = irqPriorityOrder.indexOf(targetIrqn);
+        if(fromIdx<0||toIdx<0) return;
+        irqPriorityOrder.splice(fromIdx,1);
+        irqPriorityOrder.splice(toIdx,0,draggedIrqn);
+        renderIrqPriorityList();
+        try{ renderCode(); }catch(err){}
+        scheduleSnapshot();
+      });
+      row.querySelectorAll('[data-dir]').forEach(btn=>{
+        btn.addEventListener('click', ()=>moveIrq(row.dataset.irqn, btn.dataset.dir));
+      });
+    });
+  }
+  function openIrqPriorityModal(){
+    const bd=document.getElementById('irqPriorityBackdrop');
+    if(!bd) return;
+    bd.style.display='flex';
+    renderIrqPriorityList();
+  }
+  function closeIrqPriorityModal(){
+    const bd=document.getElementById('irqPriorityBackdrop');
+    if(bd) bd.style.display='none';
+  }
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const btn=document.getElementById('irqPriorityBtn');
+    if(btn) btn.addEventListener('click', openIrqPriorityModal);
+    const closeBtn=document.getElementById('irqPriorityClose');
+    if(closeBtn) closeBtn.addEventListener('click', closeIrqPriorityModal);
+    const bd=document.getElementById('irqPriorityBackdrop');
+    if(bd) bd.addEventListener('click', e=>{ if(e.target===bd) closeIrqPriorityModal(); });
+  });
+
 })();
 </script>
 </body>
