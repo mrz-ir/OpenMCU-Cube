@@ -7,6 +7,103 @@ project uses [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.6.1] — 2026-08-29
+
+> **Release note:** v1.6.1 is the next public release after **v1.6.0**. There is
+> **no public v1.5.9 release**, and the 1.6.0.x engineering sub-versions (which were
+> never published as separate releases) are consolidated here under **v1.6.1**.
+> The public release history is therefore: **v1.5.8 → v1.6.0 → v1.6.1**.
+
+### Added
+
+#### 🔀 Interrupt priority ordering
+- Added an **“Interrupt Priorities”** panel on the **Code Generation** tab listing
+  every currently enabled interrupt.
+- Reorder with **drag-and-drop or arrow buttons**; the top of the list is the
+  highest priority.
+- Feeds the generated `HAL_NVIC_SetPriority` / `NVIC_InitStructure` code for both
+  HAL- and StdPeriph-based chips.
+- The chosen order is saved in `project_settings.json` and restored on reload.
+
+#### 🔍 Zoomable / pannable package view
+- **Scroll to zoom** — the zoom is now **anchored at the mouse cursor** (the point
+  under the pointer stays fixed while scaling).
+- **Click and drag to pan** around the package drawing.
+- A **100%** button resets and re-centers the chip diagram; the view also resets
+  automatically when the device/package changes.
+
+#### 📦 Output Settings modal
+- Choose exactly which files go into the downloaded ZIP: `main.c`, the Keil project
+  (`.uvprojx` / `.uvoptx`), SDK libraries (`Drivers/`), `project_settings.json` and
+  `README.txt`.
+- At least one item must stay enabled.
+
+#### ↩️ Undo / Redo
+- `Ctrl+Z` / `Ctrl+Y` shortcuts plus toolbar buttons.
+- One-click **Clear Pins** and **Reset Peripherals** actions from a compact history
+  menu in the header.
+
+#### 🎛 Device picker overhaul
+- New device-selection modal with a **brand filter** (Puya / HK MicroChip), a
+  **family filter** and **live search** by part number or package.
+
+#### ⌕ Peripheral list search & filter
+- Search box and group filter chips (Connectivity / Timers / Analog / Time /
+  Display / System) above the peripheral list.
+
+#### 🎨 New color themes
+- **Midnight** — a cooler, blue-slate dark theme.
+- **Paper** — a warm, parchment-toned light theme.
+- The selected theme is cached in the browser (`localStorage`) and restored
+  automatically the next time the app is opened.
+
+### Changed
+- Timer peripheral cards no longer show separate **Prescaler (PSC)**, **Period
+  (ARR)** and **Pulse** fields in the top parameter grid — these are already
+  editable via their own slider + adjacent number box in the Waveform Designer, so
+  the duplicate controls were removed to reduce clutter. `Mode`, `Channel
+  polarity`, `Interrupt` and (for Encoder mode) `PPR` / `Initial counter` are
+  unaffected and still shown.
+- Replaced the day/night toggle button with a **theme picker** (palette icon)
+  offering four themes: **Dark**, **Light**, **Midnight** and **Paper**.
+
+### Fixed
+- **“Download all files (ZIP)” silently produced incomplete, non-buildable
+  projects.** The function responsible for packaging driver/header files
+  (`embeddedHeaderFiles`) read from an emptied legacy placeholder object, so every
+  exported ZIP — and every generated Keil project’s file list — shipped with
+  **zero files from `Drivers/`**. This bug predates this release. Fixed by wiring
+  the ZIP / Keil-project build step to the existing, verified
+  `buildProjectFiles()` pipeline. Verified: exported projects now include the full
+  driver tree (~75+ files) and a `.uvprojx` that correctly references all of them.
+- PSC / ARR / Pulse are still seeded with correct default values internally even
+  though they are no longer shown in the generic parameter grid, so generated code
+  (`htim.Init.Prescaler`, `htim.Init.Period`, etc.) is unaffected by the UI change.
+
+### Verification
+- All embedded JavaScript blocks pass syntax validation.
+- Interrupt / EXTI code generation was re-verified on the real UI across all
+  supported chips (PY32F030, PY32F002A, PY32F002B, HK32F030M, HK32C030, HK32F103):
+  per-device IRQ vectors, `_it.c` / `_it.h` handlers and declarations,
+  `HAL_*_Start_IT` / `TIM_ITConfig` / `USART_ITConfig` / `UART_ITConfig` /
+  `ADC_ITConfig` output, and EXTI (grouped and per-line vectors).
+- Cursor-anchored zoom was verified: the content point under the mouse cursor
+  stays fixed while zooming, and the pan formulas match the viewport transform.
+- ZIP export now includes the full driver tree and a `.uvprojx` referencing every
+  file (verified).
+- Supported MCU families are unchanged from v1.6.0 (see the table in the entry
+  below).
+
+### Documentation
+- Updated `README.md` and this `CHANGELOG.md`; added `RELEASE_NOTES_1_6_1.md`.
+- All screenshots in `docs/` were regenerated from the v1.6.1 application.
+- The release history is presented as **v1.5.8 → v1.6.0 → v1.6.1** (no public
+  v1.5.9; 1.6.0.x sub-versions consolidated under v1.6.1), with the application
+  file `OpenMCU_Cube1_6_1.html` and the GitHub Pages path
+  `https://mrz-ir.github.io/OpenMCU-Cube/OpenMCU_Cube1_6_1.html`.
+
+---
+
 ## [1.6.0] — 2026-08-24
 
 > **Release note:** v1.5.9 was **never released publicly** — there is **no intermediate
