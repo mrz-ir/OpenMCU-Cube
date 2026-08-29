@@ -100,7 +100,7 @@ project uses [Semantic Versioning](https://semver.org/).
 - The release history is presented as **v1.5.8 → v1.6.0 → v1.6.1** (no public
   v1.5.9; 1.6.0.x sub-versions consolidated under v1.6.1), with the application
   file `OpenMCU_Cube1_6_1.html` and the GitHub Pages path
-  `https://mrz-ir.github.io/OpenMCU-Cube/OpenMCU_Cube1_6_1.html`.
+  `https://mrz-ir.github.io/OpenMCU-Cube/OpenMCU_Cube.html`.
 
 ---
 
@@ -313,7 +313,7 @@ project uses [Semantic Versioning](https://semver.org/).
 - Updated `README.md`, this `CHANGELOG.md` and the new `RELEASE_NOTES_1_6_0.md` release notes.
 - All documentation presents the release history as **v1.5.8 → v1.6.0** (no public
   v1.5.9), with the application file `OpenMCU_Cube1_6_0.html` and the GitHub Pages path
-  `https://mrz-ir.github.io/OpenMCU-Cube/OpenMCU_Cube1_6_0.html`.
+  `https://mrz-ir.github.io/OpenMCU-Cube/OpenMCU_Cube.html`.
 
 ---
 
